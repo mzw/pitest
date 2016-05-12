@@ -1,0 +1,13 @@
+#!/bin/sh
+
+UNIX_TIME=$(date +%s%3N)
+
+PIT_HOME="../pitest/pitest/"
+ADAMU_CP="target/classes:target/test-classes:target/dependency/*"
+PIT_CP="${PIT_HOME}target/classes:${PIT_HOME}target/dependency/*"
+ADAMU_CLASSPATH="${ADAMU_CP}:${PIT_CP}"
+
+java \
+  -cp ${ADAMU_CLASSPATH} \
+  jp.mzw.adamu.CLI quit ${UNIX_TIME}
+  

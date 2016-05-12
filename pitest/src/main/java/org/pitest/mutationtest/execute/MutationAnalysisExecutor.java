@@ -36,13 +36,16 @@ public class MutationAnalysisExecutor {
 
   // entry point for mutation testing
   public void run(final List<MutationAnalysisUnit> testUnits) {
-
+    jp.mzw.adamu.adaptation.Monitor.startAdaMuLogger();
+    
     LOG.fine("Running " + testUnits.size() + " units");
 
     signalRunStartToAllListeners();
 
     List<Future<MutationMetaData>> results = new ArrayList<Future<MutationMetaData>>(
         testUnits.size());
+    
+    new jp.mzw.adamu.adaptation.Executor.Interrupter(this.executor).start();
 
     for (final MutationAnalysisUnit unit : testUnits) {
       results.add(this.executor.submit(unit));

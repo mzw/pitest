@@ -1,0 +1,16 @@
+#!/bin/sh
+PIT_HOME="../pitest/pitest/"
+export R_HOME="/Library/Frameworks/R.framework/Versions/Current/Resources"
+JRI_SYSTEM_PROPERTY="/Library/Frameworks/R.framework/Versions/Current/Resources/library/rJava/jri"
+
+## Create class path
+ADAMU_CP="target/classes:target/dependency/*"
+PIT_CP="${PIT_HOME}target/classes:${PIT_HOME}target/dependency/*"
+SUBJECT_CP="${2}target/classes:${2}target/test-classes:${2}target/dependency/*"
+ADAMU_CLASSPATH="${ADAMU_CP}:${PIT_CP}:${SUBJECT_CP}"
+
+## Run AdaMu
+java \
+  -Djava.library.path=${JRI_SYSTEM_PROPERTY} \
+  -cp ${ADAMU_CLASSPATH} \
+  jp.mzw.adamu.CLI gen ${1} ${2}
