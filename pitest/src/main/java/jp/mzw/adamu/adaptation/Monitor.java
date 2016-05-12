@@ -59,6 +59,15 @@ public class Monitor {
              .append(":").append("lineno")
              .append("<").append(mutationId.getMutator());
         TestResult.getInstance().insert(builder.toString(), result.getStatus().toString());
+        try {
+            measureRuntimeMutationScore();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void monitorMutationsResult(Collection<MutationDetails> mutations, DetectionStatus status) {
