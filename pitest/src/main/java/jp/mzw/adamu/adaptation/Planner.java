@@ -48,6 +48,7 @@ public class Planner {
             }
         }
         if (valid.size() < scale.getObserveNumMutants()) {
+            logger.info("Suggest: no because valid size is not enough {}", valid.size());
             return false;
         }
         
@@ -66,9 +67,12 @@ public class Planner {
                 // 99.73 %, i.e., this score is not an outlier
                 logger.info("Suggest: yes");
                 return true;
+            } else {
+                logger.info("Suggest: no becuase AMS is an outlier");
             }
+        } else {
+            logger.info("Suggest: no bacuase standard deviation is too large");
         }
-        logger.info("Suggest: no");
         
         // Otherwise return false
         return false;
