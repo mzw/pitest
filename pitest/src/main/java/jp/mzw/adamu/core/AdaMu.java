@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import jp.mzw.adamu.adaptation.Executor;
 import jp.mzw.adamu.adaptation.knowledge.Knowledge;
@@ -64,7 +66,10 @@ public class AdaMu {
         this.srcClassList = FileUtils.readLines(
                   ConfigMaker.getClassListFile(dir, subjectId, ConfigMaker.ClassType.SourceClass));
         this.testClassList = FileUtils.readLines(
-                  ConfigMaker.getClassListFile(dir, subjectId, ConfigMaker.ClassType.TestClass));       
+                  ConfigMaker.getClassListFile(dir, subjectId, ConfigMaker.ClassType.TestClass));
+        
+        long seed = System.nanoTime();
+        Collections.shuffle(this.testClassList, new Random(seed));
     }
     
     public void loadMutatorList(String dir, String filename) throws IOException {
