@@ -1,6 +1,7 @@
 package jp.mzw.adamu.adaptation;
 
 import java.sql.SQLException;
+import java.util.Random;
 
 import jp.mzw.adamu.adaptation.knowledge.AMS;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
@@ -29,15 +30,13 @@ public class Analyzer {
         int numExaminedMutants = rtms.getNumExaminedMutants();
         int numTests = Stats.getInstance().getNumTests();
         Scale scale = Scale.getScale(numTotalMutants, numTests);
-        if (Analyzer.skipAnalyze(numExaminedMutants, scale)) {
-            return;
-        }
-        
-        if (Analyzer.TRAIN_DATA_NUM < numExaminedMutants && numExaminedMutants < numTotalMutants) {
+
+        int noise = numTotalMutants * scale.getNoiseFilter() / 100;
+        if (noise + Analyzer.TRAIN_DATA_NUM < numExaminedMutants && numExaminedMutants < numTotalMutants) {
             double[] rtmsArray = RtMS.getInstance().getRtmsArray();
             
             long start = System.currentTimeMillis();
-            double ams = Analyzer.forecastWithARIMA(rtmsArray, numTotalMutants, scale);
+            double ams = Analyzer.forecastWithARIMA(rtmsArray, numTotalMutants, scale, noise);
             long end = System.currentTimeMillis();
             Overhead.getInstance().insert(Overhead.Type.ARIMA, end - start);
 
@@ -52,7 +51,8 @@ public class Analyzer {
             Planner.quitSuggestion(numExaminedMutants, ams, scale);
         }
     }
-    
+
+    @SuppressWarnings("unused")
     private static boolean skipAnalyze(int numExaminedMutants, Scale scale) {
         if (numExaminedMutants % scale.getAnalyzeInterval() != 0) {
             return true;
@@ -84,21 +84,33 @@ public class Analyzer {
         return false;
     }
     
-    private static double forecastWithARIMA(double[] rtmsArray, int numTotalMutants, Scale scale) {
+    @SuppressWarnings("unused")
+    private static double forecastWithArima(double[] rtmsArray, int numTotalMutants, Scale scale, int noise) {
+        double[] samples = new double[rtmsArray.length - noise];
+        for (int i = noise + 1; i < rtmsArray.length; i++) {
+            samples[i - noise - 1] = rtmsArray[i];
+        }
+        ArimaProcess process = ArimaFitter.fit(samples);
+        ArimaForecaster forecaster = new DefaultArimaForecaster(process, samples);
+        double[] forecast = forecaster.next(numTotalMutants - rtmsArray.length);
+        return forecast[forecast.length - 1];
+    }
+
+    @SuppressWarnings("unused")
+    private static double forecastWithARIMA(double[] rtmsArray, int numTotalMutants, Scale scale, int noise) {
         int numExaminedMutants = rtmsArray.length;
-        int noiseFilter = numTotalMutants * scale.getNoiseFilter() / 100;
         
         double[] samples = null;
-        if (numExaminedMutants - noiseFilter < TRAIN_DATA_NUM) {
-            samples = new double[rtmsArray.length];
-            for (int i = noiseFilter + 1; i < rtmsArray.length; i++) {
-                samples[i - noiseFilter - 1] = rtmsArray[i];
+        if (numExaminedMutants - noise < TRAIN_DATA_NUM) {
+            samples = new double[rtmsArray.length - noise];
+            for (int i = noise + 1; i < rtmsArray.length; i++) {
+                samples[i - noise - 1] = rtmsArray[i];
             }
         } else {
             samples = new double[TRAIN_DATA_NUM];
-            double sep = ((double) (numExaminedMutants - noiseFilter)) / (double) TRAIN_DATA_NUM;
+            double sep = ((double) (numExaminedMutants - noise)) / (double) TRAIN_DATA_NUM;
             for (int i = 0; i < TRAIN_DATA_NUM; i++) {
-                int index = ((int) (sep * (i + 1))) + noiseFilter - 1;
+                int index = ((int) (sep * (i + 1))) + noise - 1;
                 samples[i] = rtmsArray[index];
             }
         }
@@ -110,4 +122,15 @@ public class Analyzer {
         return forecast[forecast.length - 1];
     }
     
+    @SuppressWarnings("unused")
+    private static double forecast(RtMS rtms, int numTotalMutants) {
+        int numWouldKilledMutants = 0;
+        Random randam = new Random();
+        for (int i = 0; i < numTotalMutants - rtms.getNumExaminedMutants(); i++) {
+            if (randam.nextDouble() < rtms.getScore()) {
+                numWouldKilledMutants++;
+            }
+        }
+        return (double) (rtms.getNumKilledmutants() + numWouldKilledMutants) / (double) numTotalMutants;
+    }
 }

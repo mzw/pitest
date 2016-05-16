@@ -42,6 +42,7 @@ public class Overhead extends KnowledgeBase implements DataBase {
 
     public static enum Type {
          ARIMA,
+         HeuristicForecast,
          Geweke,
          HeuristicSuggestion
     }

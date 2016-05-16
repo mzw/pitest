@@ -46,6 +46,7 @@ public class MutationAnalysisExecutor {
         testUnits.size());
     
     new jp.mzw.adamu.adaptation.Executor.Interrupter(this.executor).start();
+    java.util.Collections.shuffle(testUnits);
 
     for (final MutationAnalysisUnit unit : testUnits) {
       results.add(this.executor.submit(unit));

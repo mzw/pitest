@@ -20,6 +20,9 @@ if [ "" != "${3}" ]; then
 	ADAMU_CLASSPATH="${ADAMU_CLASSPATH}:${3}"
 fi
 
+## for randomness
+# for i in {0..9}; do
+
 ## Run AdaMu
 /usr/bin/java \
   -Xms6400m \
@@ -39,3 +42,7 @@ fi
 echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
 cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
 R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
+
+## for randomness
+# mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
+# done
