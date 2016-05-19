@@ -21,13 +21,19 @@ if [ "" != "${3}" ]; then
 fi
 
 ## for randomness
-# for i in {0..9}; do
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+
+if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
+  rm -r /tmp/testAboveThresholdSpecifiedRepository/
+fi
 
 ## Run AdaMu
 /usr/bin/java \
   -Xms6400m \
   -cp ${ADAMU_CLASSPATH} \
-  jp.mzw.adamu.CLI run ${1}
+  jp.mzw.adamu.CLI run ${1} \
+  1> /dev/null 2> /dev/null
 
 ## Copy results
 ADAMU_DIR="res/rawdata/latest/${1}"
@@ -44,5 +50,5 @@ cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
 R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
-# mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-# done
+mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
+done

@@ -89,14 +89,22 @@ public class Analyzer {
         return false;
     }
 
-    private static double forecastAmsWithEds(double[] rtms, int numTotalMutants) throws RuntimeException {
-        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtms);
-        dsf.solveWithNoiseMaxEvaluationsSatisfaction(0, 1, 0);
-        double amp = dsf.getAmplitude();
-        double exp = Math.exp(dsf.getGrowthRate() * numTotalMutants);
-        double sin = Math.sin(2 * Math.PI * dsf.getFrequency() * numTotalMutants + dsf.getPhase());
-        double offset = dsf.getOffset();
-        return amp * exp * sin + offset;
+    private static double forecastAmsWithEds(double[] rtms, int numTotalMutants) {
+    	try {
+	        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtms);
+	        dsf.solveWithNoiseMaxEvaluationsSatisfaction(0, 1, 0);
+	        double amp = dsf.getAmplitude();
+	        double exp = Math.exp(dsf.getGrowthRate() * numTotalMutants);
+	        double sin = Math.sin(2 * Math.PI * dsf.getFrequency() * numTotalMutants + dsf.getPhase());
+	        double offset = dsf.getOffset();
+	        return amp * exp * sin + offset;
+    	} catch (RuntimeException e) {
+    		double[] _rtms = new double[rtms.length - 1];
+    		for (int i = 1; i < rtms.length; i++) {
+    			_rtms[i - 1] = rtms[i];
+    		}
+    		return forecastAmsWithEds(_rtms, numTotalMutants);
+    	}
     }
     
     @SuppressWarnings("unused")
