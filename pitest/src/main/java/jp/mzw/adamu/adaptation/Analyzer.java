@@ -42,7 +42,7 @@ public class Analyzer {
             double[] rtmsArray = RtMS.getInstance().getRtmsArray();
             
             long start = System.currentTimeMillis();
-            double ams = Analyzer.forecastAmsWithEds(rtmsArray, numTotalMutants);
+            double ams = Analyzer.forecastAmsWithEds(rtmsArray, numTotalMutants, noise, rtms);
             long end = System.currentTimeMillis();
             Overhead.getInstance().insert(Overhead.Type.ARIMA, end - start);
 
@@ -89,9 +89,17 @@ public class Analyzer {
         return false;
     }
 
-    private static double forecastAmsWithEds(double[] rtms, int numTotalMutants) {
+    /**
+     * Forecast approximate mutation score with exponentially damped sinusoids
+     * @param rtmsArray Time series data of runtime mutation scores
+     * @param numTotalMutants The total number of generated mutants
+     * @param noise The number of earlier mutants as noise
+     * @param rtms Current runtime mutation score
+     * @return Approximate mutation score
+     */
+    private static double forecastAmsWithEds(double[] rtmsArray, int numTotalMutants, int noise, RtMS rtms) {
     	try {
-	        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtms);
+	        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtmsArray);
 	        dsf.solveWithNoiseMaxEvaluationsSatisfaction(0, 1, 0);
 	        double amp = dsf.getAmplitude();
 	        double exp = Math.exp(dsf.getGrowthRate() * numTotalMutants);
@@ -99,11 +107,14 @@ public class Analyzer {
 	        double offset = dsf.getOffset();
 	        return amp * exp * sin + offset;
     	} catch (RuntimeException e) {
-    		double[] _rtms = new double[rtms.length - 1];
-    		for (int i = 1; i < rtms.length; i++) {
-    			_rtms[i - 1] = rtms[i];
+    		if (rtmsArray.length < noise) {
+    			return rtms.getScore();
     		}
-    		return forecastAmsWithEds(_rtms, numTotalMutants);
+    		double[] _rtmsArray = new double[rtmsArray.length - 1];
+    		for (int i = 1; i < rtmsArray.length; i++) {
+    			_rtmsArray[i - 1] = rtmsArray[i];
+    		}
+    		return forecastAmsWithEds(_rtmsArray, numTotalMutants, noise, rtms);
     	}
     }
     
