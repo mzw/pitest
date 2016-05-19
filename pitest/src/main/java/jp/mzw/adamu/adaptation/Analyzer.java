@@ -16,6 +16,8 @@ import org.espy.arima.DefaultArimaForecaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import xal.extension.fit.DampedSinusoidFit;
+
 /**
  * Analyze function of MAPE-K control loop implemented in AdaMu
  * @author Yuta Maezawa
@@ -30,13 +32,17 @@ public class Analyzer {
         int numExaminedMutants = rtms.getNumExaminedMutants();
         int numTests = Stats.getInstance().getNumTests();
         Scale scale = Scale.getScale(numTotalMutants, numTests);
+        
+        if(Analyzer.skipAnalyze(numExaminedMutants, scale)) {
+		    return;
+		}
 
         int noise = numTotalMutants * scale.getNoiseFilter() / 100;
         if (noise + Analyzer.TRAIN_DATA_NUM < numExaminedMutants && numExaminedMutants < numTotalMutants) {
             double[] rtmsArray = RtMS.getInstance().getRtmsArray();
             
             long start = System.currentTimeMillis();
-            double ams = Analyzer.forecastWithARIMA(rtmsArray, numTotalMutants, scale, noise);
+            double ams = Analyzer.forecastAmsWithEds(rtmsArray, numTotalMutants);
             long end = System.currentTimeMillis();
             Overhead.getInstance().insert(Overhead.Type.ARIMA, end - start);
 
@@ -52,7 +58,6 @@ public class Analyzer {
         }
     }
 
-    @SuppressWarnings("unused")
     private static boolean skipAnalyze(int numExaminedMutants, Scale scale) {
         if (numExaminedMutants % scale.getAnalyzeInterval() != 0) {
             return true;
@@ -82,6 +87,16 @@ public class Analyzer {
             return true;
         }
         return false;
+    }
+
+    private static double forecastAmsWithEds(double[] rtms, int numTotalMutants) throws RuntimeException {
+        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtms);
+        dsf.solveWithNoiseMaxEvaluationsSatisfaction(0, 1, 0);
+        double amp = dsf.getAmplitude();
+        double exp = Math.exp(dsf.getGrowthRate() * numTotalMutants);
+        double sin = Math.sin(2 * Math.PI * dsf.getFrequency() * numTotalMutants + dsf.getPhase());
+        double offset = dsf.getOffset();
+        return amp * exp * sin + offset;
     }
     
     @SuppressWarnings("unused")
