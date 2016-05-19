@@ -107,27 +107,8 @@ public class Analyzer {
 	        double offset = dsf.getOffset();
 	        return amp * exp * sin + offset;
     	} catch (RuntimeException e) {
-    		if (rtmsArray.length < noise) {
-    			return rtms.getScore();
-    		}
-    		double[] _rtmsArray = new double[rtmsArray.length - 1];
-    		for (int i = 1; i < rtmsArray.length; i++) {
-    			_rtmsArray[i - 1] = rtmsArray[i];
-    		}
-    		return forecastAmsWithEds(_rtmsArray, numTotalMutants, noise, rtms);
+    		return rtms.getScore();
     	}
-    }
-    
-    @SuppressWarnings("unused")
-    private static double forecastWithArima(double[] rtmsArray, int numTotalMutants, Scale scale, int noise) {
-        double[] samples = new double[rtmsArray.length - noise];
-        for (int i = noise + 1; i < rtmsArray.length; i++) {
-            samples[i - noise - 1] = rtmsArray[i];
-        }
-        ArimaProcess process = ArimaFitter.fit(samples);
-        ArimaForecaster forecaster = new DefaultArimaForecaster(process, samples);
-        double[] forecast = forecaster.next(numTotalMutants - rtmsArray.length);
-        return forecast[forecast.length - 1];
     }
 
     @SuppressWarnings("unused")

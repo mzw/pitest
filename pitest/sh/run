@@ -52,3 +52,5 @@ R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 ## for randomness
 mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
 done
+
+echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
