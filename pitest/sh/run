@@ -21,8 +21,8 @@ if [ "" != "${3}" ]; then
 fi
 
 ## for randomness
-for i in 0 1 2 3 4 5 6 7 8 9
-do
+# for i in 0 1 2 3 4 5 6 7 8 9
+# do
 
 if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
   rm -r /tmp/testAboveThresholdSpecifiedRepository/
@@ -40,16 +40,16 @@ mkdir -p ${ADAMU_DIR}
 cp logs/latest/* ${ADAMU_DIR}
 
 ## Run R to visualize results
-ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
-if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
-	rm ${ADAMU_R_GRAPH_FILE}
-fi
-echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
-cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
-R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
+# ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
+# if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
+# 	rm ${ADAMU_R_GRAPH_FILE}
+# fi
+# echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
+# cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
+# R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
-mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-done
+# mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
+# done
 
-echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
+# echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp

@@ -1,10 +1,14 @@
 package jp.mzw.adamu.adaptation.knowledge;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.apache.commons.io.FileUtils;
 
 public class Stats extends KnowledgeBase implements DataBase {
 
@@ -138,6 +142,29 @@ public class Stats extends KnowledgeBase implements DataBase {
 
     @Override
     public void output() {
-        // NOP
+    	try {
+    		Long start = null;
+    		Long end = null;
+    		{
+	            Statement stmt = getConnection().createStatement();
+	            ResultSet results = stmt.executeQuery("select value from stats where key='" + Label.StartTime + "'");
+	            start = Long.parseLong(results.getString(1));
+	            results.close();
+	            stmt.close();
+    		}
+    		{
+	            Statement stmt = getConnection().createStatement();
+	            ResultSet results = stmt.executeQuery("select value from stats where key='" + Label.Finish + "'");
+	            end = Long.parseLong(results.getString(1));
+	            results.close();
+	            stmt.close();
+    		}
+    		Long elapsed_time = end - start;
+			FileUtils.write(new File(Log.getLatestDir(), "elapsed_time.csv"),  elapsed_time.toString());
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
     }
 }

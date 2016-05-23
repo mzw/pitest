@@ -10,11 +10,6 @@ public class Knowledge {
 
     public static final String[] CLASS_NAMES = new String[] {
         Stats.class.getName(),
-        TestResult.class.getName(),
-        RtMS.class.getName(),
-        AMS.class.getName(),
-        SAMS.class.getName(),
-        Overhead.class.getName(),
     };
 
     public static void initDataBases() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
