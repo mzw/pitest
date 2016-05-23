@@ -32,8 +32,7 @@ fi
 /usr/bin/java \
   -Xms6400m \
   -cp ${ADAMU_CLASSPATH} \
-  jp.mzw.adamu.CLI run ${1} \
-  1> /dev/null 2> /dev/null
+  jp.mzw.adamu.CLI run ${1}
 
 ## Copy results
 ADAMU_DIR="res/rawdata/latest/${1}"

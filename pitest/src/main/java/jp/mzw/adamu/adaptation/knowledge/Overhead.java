@@ -1,9 +1,16 @@
 package jp.mzw.adamu.adaptation.knowledge;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 public class Overhead extends KnowledgeBase implements DataBase {
 
@@ -41,10 +48,8 @@ public class Overhead extends KnowledgeBase implements DataBase {
     }
 
     public static enum Type {
-         ARIMA,
-         HeuristicForecast,
-         Geweke,
-         HeuristicSuggestion
+         Forecast,
+         Converge,
     }
 
     public synchronized void insert(Type type, long time) {
@@ -59,6 +64,36 @@ public class Overhead extends KnowledgeBase implements DataBase {
 
     @Override
     public void output() {
+        try {
+            // for forecasting
+            {
+                Statement stmt = getConnection().createStatement();
+				ResultSet results = stmt.executeQuery("select overhead from overhead where source = '" + Overhead.Type.Forecast + "'");
+				List<String> lines = new ArrayList<>();
+		        while (results.next()) {
+		        	lines.add(results.getString(1));
+		        }
+	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.forecast.csv"),  lines);
+	            results.close();
+	            stmt.close();
+            }
+            // for converging
+            {
+                Statement stmt = getConnection().createStatement();
+				ResultSet results = stmt.executeQuery("select overhead from overhead where source = '" + Overhead.Type.Converge + "'");
+				List<String> lines = new ArrayList<>();
+		        while (results.next()) {
+		        	lines.add(results.getString(1));
+		        }
+	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.converge.csv"),  lines);
+	            results.close();
+	            stmt.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

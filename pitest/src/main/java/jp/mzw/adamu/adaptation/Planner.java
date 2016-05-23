@@ -28,7 +28,7 @@ public class Planner {
         long start = System.currentTimeMillis();
         boolean shouldSuggest = Planner.shouldSuggestApproximateMutationScore(timeArray, amsArray, scale);
         long end = System.currentTimeMillis();
-        Overhead.getInstance().insert(Overhead.Type.HeuristicSuggestion, end - start);
+        Overhead.getInstance().insert(Overhead.Type.Converge, end - start);
         
         if (shouldSuggest) {
              SAMS.getInstance().insert(numExaminedMutants, score);

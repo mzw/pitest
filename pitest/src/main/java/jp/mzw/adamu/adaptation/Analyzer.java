@@ -44,7 +44,7 @@ public class Analyzer {
             long start = System.currentTimeMillis();
             double ams = Analyzer.forecastAmsWithEds(rtmsArray, numTotalMutants, noise, rtms);
             long end = System.currentTimeMillis();
-            Overhead.getInstance().insert(Overhead.Type.ARIMA, end - start);
+            Overhead.getInstance().insert(Overhead.Type.Forecast, end - start);
 
             logger.info("Approximate mutation score: {}", ams);
             if (!Analyzer.isValid(ams, rtms, numTotalMutants)) {
