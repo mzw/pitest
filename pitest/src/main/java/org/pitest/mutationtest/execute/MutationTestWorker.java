@@ -105,8 +105,6 @@ public class MutationTestWorker {
 
     final MutationStatusTestPair mutationDetected = handleMutation(
         mutationDetails, mutatedClass, relevantTests);
-    
-    jp.mzw.adamu.adaptation.Monitor.monitorMutationResult(mutationId, mutationDetected);
 
     r.report(mutationId, mutationDetected);
     if (DEBUG) {

@@ -47,7 +47,6 @@ public class MutationStatusMap {
       final Collection<MutationDetails> mutations, final DetectionStatus status) {
     FCollection.forEach(mutations,
         putToMap(this.mutationMap, new MutationStatusTestPair(0, status)));
-    jp.mzw.adamu.adaptation.Monitor.monitorMutationsResult(mutations, status);
   }
 
   public List<MutationResult> createMutationResults() {
