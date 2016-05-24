@@ -45,6 +45,8 @@ public class Analyzer {
             double ams = Analyzer.forecastAmsWithEds(rtmsArray, numTotalMutants, noise, rtms);
             long end = System.currentTimeMillis();
             Overhead.getInstance().insert(Overhead.Type.Forecast, end - start);
+            
+            System.gc();
 
             logger.info("Approximate mutation score: {}", ams);
             if (!Analyzer.isValid(ams, rtms, numTotalMutants)) {
