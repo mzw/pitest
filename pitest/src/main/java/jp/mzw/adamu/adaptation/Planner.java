@@ -30,8 +30,6 @@ public class Planner {
         long end = System.currentTimeMillis();
         Overhead.getInstance().insert(Overhead.Type.Converge, end - start);
         
-        System.gc();
-        
         if (shouldSuggest) {
              SAMS.getInstance().insert(numExaminedMutants, score);
         }

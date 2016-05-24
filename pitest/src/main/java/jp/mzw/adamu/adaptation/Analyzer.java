@@ -1,7 +1,6 @@
 package jp.mzw.adamu.adaptation;
 
 import java.sql.SQLException;
-import java.util.Random;
 
 import jp.mzw.adamu.adaptation.knowledge.AMS;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
@@ -46,8 +45,6 @@ public class Analyzer {
             long end = System.currentTimeMillis();
             Overhead.getInstance().insert(Overhead.Type.Forecast, end - start);
             
-            System.gc();
-
             logger.info("Approximate mutation score: {}", ams);
             if (!Analyzer.isValid(ams, rtms, numTotalMutants)) {
                 logger.info("Validation result: invalid");
@@ -101,7 +98,8 @@ public class Analyzer {
      */
     private static double forecastAmsWithEds(double[] rtmsArray, int numTotalMutants, int noise, RtMS rtms) {
     	try {
-	        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(rtmsArray);
+    		double[] samples = sample(rtmsArray, noise);
+	        DampedSinusoidFit dsf = DampedSinusoidFit.getInstance(samples);
 	        dsf.solveWithNoiseMaxEvaluationsSatisfaction(0, 1, 0);
 	        double amp = dsf.getAmplitude();
 	        double exp = Math.exp(dsf.getGrowthRate() * numTotalMutants);
@@ -113,41 +111,43 @@ public class Analyzer {
     	}
     }
 
+    /**
+     * Forecast approximate mutation score with autoregressive, integrated, moving average model
+     * @param rtmsArray Time series data of runtime mutation scores
+     * @param numTotalMutants The total number of generated mutants
+     * @param noise The number of earlier mutants as noise
+     * @return
+     */
     @SuppressWarnings("unused")
-    private static double forecastWithARIMA(double[] rtmsArray, int numTotalMutants, Scale scale, int noise) {
-        int numExaminedMutants = rtmsArray.length;
-        
-        double[] samples = null;
-        if (numExaminedMutants - noise < TRAIN_DATA_NUM) {
-            samples = new double[rtmsArray.length - noise];
-            for (int i = noise + 1; i < rtmsArray.length; i++) {
-                samples[i - noise - 1] = rtmsArray[i];
-            }
-        } else {
-            samples = new double[TRAIN_DATA_NUM];
-            double sep = ((double) (numExaminedMutants - noise)) / (double) TRAIN_DATA_NUM;
-            for (int i = 0; i < TRAIN_DATA_NUM; i++) {
-                int index = ((int) (sep * (i + 1))) + noise - 1;
-                samples[i] = rtmsArray[index];
-            }
-        }
-        
+    private static double forecastWithARIMA(double[] rtmsArray, int numTotalMutants, int noise) {
+        double[] samples = sample(rtmsArray, noise);
         ArimaProcess process = ArimaFitter.fit(samples);
         ArimaForecaster forecaster = new DefaultArimaForecaster(process, samples);
-        double[] forecast = forecaster.next(numTotalMutants - numExaminedMutants);
-        
+        double[] forecast = forecaster.next(numTotalMutants - rtmsArray.length);
         return forecast[forecast.length - 1];
     }
     
-    @SuppressWarnings("unused")
-    private static double forecast(RtMS rtms, int numTotalMutants) {
-        int numWouldKilledMutants = 0;
-        Random randam = new Random();
-        for (int i = 0; i < numTotalMutants - rtms.getNumExaminedMutants(); i++) {
-            if (randam.nextDouble() < rtms.getScore()) {
-                numWouldKilledMutants++;
+    /**
+     * Sample time series data without noise
+     * @param data Given time series data
+     * @param noise Given noise
+     * @return Sampled time series data
+     */
+    private static double[] sample(double[] data, int noise) {
+        double[] samples = null;
+        if (data.length - noise < TRAIN_DATA_NUM) {
+            samples = new double[data.length - noise];
+            for (int i = noise + 1; i < data.length; i++) {
+                samples[i - noise - 1] = data[i];
+            }
+        } else {
+            samples = new double[TRAIN_DATA_NUM];
+            double sep = ((double) (data.length - noise)) / (double) TRAIN_DATA_NUM;
+            for (int i = 0; i < TRAIN_DATA_NUM; i++) {
+                int index = ((int) (sep * (i + 1))) + noise - 1;
+                samples[i] = data[index];
             }
         }
-        return (double) (rtms.getNumKilledmutants() + numWouldKilledMutants) / (double) numTotalMutants;
+        return samples;
     }
 }
