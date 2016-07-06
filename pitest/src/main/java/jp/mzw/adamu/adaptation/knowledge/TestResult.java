@@ -1,9 +1,17 @@
 package jp.mzw.adamu.adaptation.knowledge;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.pitest.mutationtest.DetectionStatus;
 
 public class TestResult extends KnowledgeBase implements DataBase {
 
@@ -52,6 +60,32 @@ public class TestResult extends KnowledgeBase implements DataBase {
     
     @Override
     public void output() {
-        
+        try {
+            long start = Stats.class.newInstance().getStartTime();
+            StringBuilder builder = new StringBuilder();
+            String delim = "";
+            
+            Statement stmt = getConnection().createStatement();
+			ResultSet results = stmt.executeQuery("select time, mutation, status from test_results");
+            while (results.next()) {
+                int time = (int)(results.getInt(1) - start);
+	        	String mutation = results.getString(2);
+	        	String status = results.getString(3);
+                builder.append(delim).append(time).append(COMMA).append(mutation).append(COMMA).append(status);
+                delim = BR;
+            }
+            results.close();
+            stmt.close();
+
+            FileUtils.write(new File(Log.getLatestDir(), "test_results.csv"),  builder.toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }
