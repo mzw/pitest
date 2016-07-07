@@ -3,7 +3,9 @@ package jp.mzw.adamu.adaptation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.RtMS;
@@ -93,6 +95,9 @@ public class Monitor {
     }
 
     public static void measureRuntimeMutationScore() throws SQLException, InstantiationException, IllegalAccessException {
+    	List<RtMS> rtmsList = new ArrayList<>();
+    	RtMS curRtms = null;
+    	
         int numExaminedMutants = 0;
         int numKilledMutants = 0;
         Statement stmt = TestResult.getInstance().getConnection().createStatement();
@@ -105,12 +110,16 @@ public class Monitor {
                     || status.equals(DetectionStatus.TIMED_OUT.name())
                     || status.equals(DetectionStatus.RUN_ERROR.name())) {
                 numKilledMutants += 1;
-            }  
+            }
+            curRtms = new RtMS(numKilledMutants, numExaminedMutants);
+            rtmsList.add(curRtms);
         }
         RtMS rtms = new RtMS(numKilledMutants, numExaminedMutants);
         RtMS.getInstance().insert(rtms.getScore());
         logger.info("Runtime mutation score: {}", rtms.getScore());
-        Analyzer.analyzeApproximateMutationScore(rtms);
+//        Analyzer.analyzeApproximateMutationScore(rtms);
+        
+        Analyzer.analyze(rtmsList, curRtms);
     }
     
 }

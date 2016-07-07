@@ -1,11 +1,14 @@
 package jp.mzw.adamu.adaptation;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import jp.mzw.adamu.adaptation.knowledge.AMS;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.RtMS;
+import jp.mzw.adamu.adaptation.model.ConvergeDiagnostic;
+import jp.mzw.adamu.adaptation.model.SPRT;
 import jp.mzw.adamu.scale.Scale;
 
 import org.espy.arima.ArimaFitter;
@@ -23,7 +26,19 @@ import xal.extension.fit.DampedSinusoidFit;
  */
 public class Analyzer {
     static Logger logger = LoggerFactory.getLogger(Analyzer.class);
+    
+    public static void analyze(List<RtMS> rtmsList, RtMS curRtms) throws SQLException {
+    	int num_total_mutants = Stats.getInstance().getNumTotalMutants();
+    	List<RtMS> useful_rtms_list = ConvergeDiagnostic.getUsefulRtmsList(rtmsList, num_total_mutants);
+    	if (!useful_rtms_list.isEmpty()) {
+    		boolean stop = SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledmutants(), num_total_mutants);
+    		if (stop) {
+    			Planner.forecastAms(useful_rtms_list, curRtms, num_total_mutants);
+    		}
+    	}
+    }
 
+    //--------------------------------------------------
     public static final int TRAIN_DATA_NUM = 200; // 200-300 based on heuristic
     
     public static void analyzeApproximateMutationScore(RtMS rtms) throws SQLException, InstantiationException, IllegalAccessException {
