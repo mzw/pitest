@@ -1,4 +1,5 @@
 adamu.log
+pitest.log*
 logs/*
 res/rawdata/*
 
