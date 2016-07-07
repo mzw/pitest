@@ -61,6 +61,10 @@ public class MutationTestUnit implements MutationAnalysisUnit {
   public int priority() {
     return this.availableMutations.size();
   }
+  
+  public Collection<MutationDetails> getAvailableMutations() {
+	  return this.availableMutations;
+  }
 
   private void runTestsInSeperateProcess(final MutationStatusMap mutations)
       throws IOException, InterruptedException {

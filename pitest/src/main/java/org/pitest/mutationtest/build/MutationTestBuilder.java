@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.pitest.classinfo.ClassName;
@@ -55,7 +57,7 @@ public class MutationTestBuilder {
 
     final List<MutationDetails> mutations = FCollection.flatMap(codeClasses,
         classToMutations());
-
+    
     Collections.sort(mutations, comparator());
 
     final Collection<MutationResult> analysedMutations = this.analyser
@@ -71,14 +73,53 @@ public class MutationTestBuilder {
       tus.add(makePreAnalysedUnit(analysed));
     }
 
+//    if (!needAnalysis.isEmpty()) {
+//      for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
+//          codeClasses, needAnalysis)) {
+//        tus.add(makeUnanalysedUnit(ms));
+//      }
+//    }
+//    Collections.sort(tus, new AnalysisPriorityComparator());
+    
     if (!needAnalysis.isEmpty()) {
-      for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
-          codeClasses, needAnalysis)) {
-        tus.add(makeUnanalysedUnit(ms));
-      }
-    }
+    	Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
+    	for (MutationDetails mutation : needAnalysis) {
+    		String methodName = mutation.getClassName() + "#" + mutation.getMethod();
+    		List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
+    		if (mutation_list == null) {
+    			mutation_list = new ArrayList<>();
+    		}
+    		mutation_list.add(mutation);
+    		method_mutation_map.put(methodName, mutation_list);
+    	}
+    	
+    	for (String methodName : method_mutation_map.keySet()) {
+    		List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
+    		Collections.shuffle(mutation_list);
+    	}
+    	
+    	boolean remain = true;
+    	do {
+    		remain = false;
+    		for (String methodName : method_mutation_map.keySet()) {
+    			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
+    			if (0 < mutation_list.size()) {
+    				MutationDetails mutation = mutation_list.remove(0);
 
-    Collections.sort(tus, new AnalysisPriorityComparator());
+    	    		final Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
+    				method_based_mutation_list.add(mutation);
+    	    	    final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+    	    	    FCollection.flatMapTo(method_based_mutation_list, mutationDetailsToTestClass(), uniqueTestClasses);
+    	    	    MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, this.workerFactory);
+    	    		tus.add(mtu);
+    			}
+    			if (0 < mutation_list.size()) {
+    				remain = true;
+    			}
+    		}
+    	} while(remain);
+    }
+    
     return tus;
   }
 
@@ -113,7 +154,6 @@ public class MutationTestBuilder {
     final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
     FCollection.flatMapTo(needAnalysis, mutationDetailsToTestClass(),
         uniqueTestClasses);
-
     return new MutationTestUnit(needAnalysis, uniqueTestClasses,
         this.workerFactory);
   }
