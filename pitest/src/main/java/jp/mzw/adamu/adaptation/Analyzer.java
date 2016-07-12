@@ -1,6 +1,7 @@
 package jp.mzw.adamu.adaptation;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import jp.mzw.adamu.adaptation.knowledge.AMS;
@@ -26,15 +27,43 @@ import xal.extension.fit.DampedSinusoidFit;
  */
 public class Analyzer {
     static Logger logger = LoggerFactory.getLogger(Analyzer.class);
-    
+
     public static void analyze(List<RtMS> rtmsList, RtMS curRtms) throws SQLException {
     	int num_total_mutants = Stats.getInstance().getNumTotalMutants();
-    	List<RtMS> useful_rtms_list = ConvergeDiagnostic.getUsefulRtmsList(rtmsList, num_total_mutants);
-    	if (!useful_rtms_list.isEmpty()) {
-    		boolean stop = SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledmutants(), num_total_mutants);
-    		if (stop) {
-    			Planner.forecastAms(useful_rtms_list, curRtms, num_total_mutants);
+    	
+    	boolean burnin = true;
+    	boolean stop = false;
+    	List<RtMS> cur_rtms_list = new ArrayList<>();
+    	List<RtMS> cur_useful_rtms_list = new ArrayList<>();
+    	for (RtMS rtms : rtmsList) {
+    		cur_rtms_list.add(rtms);
+    		if (burnin) {
+    			if (ConvergeDiagnostic.converge(cur_rtms_list, num_total_mutants)) {
+    				burnin = false;
+    			} else {
+    				// Burn-in period
+    			}
+    		} else {
+    			cur_useful_rtms_list.add(rtms);
+    			if (stop) {
+    				// 
+    			} else {
+        			if (!stop && SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants)) {
+        				stop = true;
+        			} else {
+        				// Continue to measure for making stop decision
+        			}
+    			}
     		}
+    	}
+    	
+    	if (burnin) {
+    		logger.info("Burn-in period...");
+    	} else if (!stop) {
+    		logger.info("Continue to measure for making stop decision...");
+    	} else {
+            logger.info("Suggest for stopping mutation testing");
+    		Planner.forecastAms(cur_useful_rtms_list, curRtms, num_total_mutants);
     	}
     }
 
@@ -89,7 +118,7 @@ public class Analyzer {
      * @return
      */
     private static boolean isValid(double ams, RtMS rtms, int numTotalMutants) {
-        int numKilledMutants = rtms.getNumKilledmutants();
+        int numKilledMutants = rtms.getNumKilledMutants();
         int numRemainingMutants = numTotalMutants - rtms.getNumExaminedMutants();
         
         int numMaxKilledMutants = numKilledMutants + numRemainingMutants;

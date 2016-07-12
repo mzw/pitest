@@ -116,7 +116,7 @@ public class Monitor {
         }
         RtMS rtms = new RtMS(numKilledMutants, numExaminedMutants);
         RtMS.getInstance().insert(rtms.getScore());
-        logger.info("Runtime mutation score: {}", rtms.getScore());
+        logger.info("Runtime mutation score: {} @ {}", rtms.getScore(), numExaminedMutants);
 //        Analyzer.analyzeApproximateMutationScore(rtms);
         
         Analyzer.analyze(rtmsList, curRtms);

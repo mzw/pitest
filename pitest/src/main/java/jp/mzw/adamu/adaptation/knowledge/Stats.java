@@ -79,6 +79,7 @@ public class Stats extends KnowledgeBase implements DataBase {
     public static enum Label {
          StartTime,
          AvailableMutations,
+         Burnin,
          Suggest,
          Quit,
          Finish,

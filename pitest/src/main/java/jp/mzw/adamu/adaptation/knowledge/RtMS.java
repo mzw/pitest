@@ -23,7 +23,7 @@ public class RtMS extends KnowledgeBase implements DataBase {
          this.score = (double) numKilledMutants / (double) numExaminedMutants;
     }
     
-    public int getNumKilledmutants() {
+    public int getNumKilledMutants() {
          return this.numKilledMutants;
     }
     
