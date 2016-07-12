@@ -29,6 +29,9 @@ public abstract class Forecast implements IForecast {
 	}
 
 	public static Double getFinal(Map<Integer, Double> data) {
+		if (data == null) {
+			return null;
+		}
 		Double ret = null;
 		Integer max_index = Integer.MIN_VALUE;
 		for (Integer index : data.keySet()) {
