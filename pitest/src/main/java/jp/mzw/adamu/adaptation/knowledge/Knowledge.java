@@ -13,7 +13,7 @@ public class Knowledge {
         TestResult.class.getName(),
         RtMS.class.getName(),
         AMS.class.getName(),
-        SAMS.class.getName(),
+//        SAMS.class.getName(),
         Overhead.class.getName(),
     };
 
