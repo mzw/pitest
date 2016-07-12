@@ -20,20 +20,23 @@ public abstract class Forecast implements IForecast {
 		return grad;
 	}
 
-	public static Double getFinal(List<Double> data) {
+	public static double getFinal(List<Double> data) {
+		if (data == null) {
+			return -1;
+		}
 		int size = data.size();
 		if (data.isEmpty()) {
-			return null;
+			return -1;
 		}
 		return data.get(size - 1);
 	}
 
-	public static Double getFinal(Map<Integer, Double> data) {
+	public static double getFinal(Map<Integer, Double> data) {
 		if (data == null) {
-			return null;
+			return -1;
 		}
-		Double ret = null;
-		Integer max_index = Integer.MIN_VALUE;
+		double ret = -1;
+		int max_index = Integer.MIN_VALUE;
 		for (Integer index : data.keySet()) {
 			if (max_index < index) {
 				ret = data.get(index);
