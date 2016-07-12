@@ -48,9 +48,10 @@ public class Overhead extends KnowledgeBase implements DataBase {
     }
 
     public static enum Type {
-         Forecast,
-         Converge,
-         StopDecision,
+    	TestExecOrder,
+        Forecast,
+        Converge,
+        StopDecision,
     }
 
     public synchronized void insert(Type type, long time) {
@@ -90,7 +91,7 @@ public class Overhead extends KnowledgeBase implements DataBase {
 	            results.close();
 	            stmt.close();
             }
-            // for converging
+            // for making stop decision
             {
                 Statement stmt = getConnection().createStatement();
 				ResultSet results = stmt.executeQuery("select overhead from overhead where source = '" + Overhead.Type.StopDecision + "'");
@@ -98,7 +99,19 @@ public class Overhead extends KnowledgeBase implements DataBase {
 		        while (results.next()) {
 		        	lines.add(results.getString(1));
 		        }
-	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.stopdecision.csv"),  lines);
+	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.stop.csv"),  lines);
+	            results.close();
+	            stmt.close();
+            }
+            // for manipulating test execution order
+            {
+                Statement stmt = getConnection().createStatement();
+				ResultSet results = stmt.executeQuery("select overhead from overhead where source = '" + Overhead.Type.TestExecOrder + "'");
+				List<String> lines = new ArrayList<>();
+		        while (results.next()) {
+		        	lines.add(results.getString(1));
+		        }
+	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.order.csv"),  lines);
 	            results.close();
 	            stmt.close();
             }

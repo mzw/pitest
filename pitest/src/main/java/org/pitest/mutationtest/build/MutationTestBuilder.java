@@ -85,6 +85,7 @@ public class MutationTestBuilder {
     Collections.sort(tus, new AnalysisPriorityComparator());
     
     if (!needAnalysis.isEmpty()) {
+    	long start = System.currentTimeMillis();
     	Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
     	for (MutationDetails mutation : needAnalysis) {
     		String methodName = mutation.getClassName() + "#" + mutation.getMethod();
@@ -130,6 +131,9 @@ public class MutationTestBuilder {
     			}
     		}
     	} while(remain);
+    	long end = System.currentTimeMillis();
+    	jp.mzw.adamu.adaptation.knowledge.Overhead.getInstance().insert(
+    			jp.mzw.adamu.adaptation.knowledge.Overhead.Type.TestExecOrder, end - start);
     }
     
     return tus;
