@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +57,9 @@ public class Planner {
 		else if (10000 < num_total_mutants - num_examined_mutants) {
 			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
 			Damp damp = new Damp();
-			Pair<Double, Double> rate_diff_pair_for_damp = damp.getAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_damp = rate_diff_pair_for_damp.getKey();
-			double error_for_damp = rate_diff_pair_for_damp.getValue();
+			damp.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
+			double rate_for_damp = damp.getAccelerationRate();
+			double error_for_damp = damp.getAccelerationRateError();
 			Map<Integer, Double> forecasts = damp.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_damp);
 			double ams_damp = Forecast.getFinal(forecasts);
 			if (Forecast.isValid(ams_damp, num_examined_mutants, num_killed_mutants, num_total_mutants)) {
@@ -78,17 +77,17 @@ public class Planner {
 			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
 			// Damp
 			Damp damp = new Damp();
-			Pair<Double, Double> rate_diff_pair_for_damp = damp.getAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_damp = rate_diff_pair_for_damp.getKey();
-			double error_for_damp = rate_diff_pair_for_damp.getValue();
+			damp.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
+			double rate_for_damp = damp.getAccelerationRate();
+			double error_for_damp = damp.getAccelerationRateError();
 			Map<Integer, Double> forecasts_damp = damp.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_damp);
 			double ams_damp = Forecast.getFinal(forecasts_damp);
 			boolean valid_ams_damp = Forecast.isValid(ams_damp, num_examined_mutants, num_killed_mutants, num_total_mutants);
 			// Parabola
 			Parabola parabola = new Parabola();
-			Pair<Double, Double> rate_diff_pair_for_parabola = parabola.getAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_parabola = rate_diff_pair_for_parabola.getKey();
-			double error_for_parabola = rate_diff_pair_for_parabola.getValue();
+			parabola.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
+			double rate_for_parabola = parabola.getAccelerationRate();
+			double error_for_parabola = parabola.getAccelerationRateError();
 			Map<Integer, Double> forecasts_parabola = parabola.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_parabola);
 			double ams_parabola = Forecast.getFinal(forecasts_parabola);
 			boolean valid_ams_parabola = Forecast.isValid(ams_parabola, num_examined_mutants, num_killed_mutants, num_total_mutants);

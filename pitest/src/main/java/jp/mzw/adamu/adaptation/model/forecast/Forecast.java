@@ -4,6 +4,13 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class Forecast implements IForecast {
+	
+	protected double acceleration_rate;
+	protected double acceleration_rate_error;
+	protected Forecast() {
+		acceleration_rate = -1;
+		acceleration_rate_error = -1;
+	}
 
 	public static double getInitialGrad(List<Double> data, int N) {
 		int num_prv = (int) (N * 0.01);
@@ -45,5 +52,13 @@ public abstract class Forecast implements IForecast {
 
 	public abstract double forecastFinal(List<Double> data, int n, int N, double grad, double rate);
 	public abstract Map<Integer, Double> forecast(List<Double> data, int n, int N, double grad, double rate);
+	public abstract void calcAccelerationRate(List<Double> data, int N, double grad);
+	
+	public double getAccelerationRate() {
+		return acceleration_rate;
+	}
+	public double getAccelerationRateError() {
+		return acceleration_rate_error;
+	}
 	
 }

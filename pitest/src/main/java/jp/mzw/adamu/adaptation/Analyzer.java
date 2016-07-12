@@ -46,9 +46,9 @@ public class Analyzer {
     		} else {
     			cur_useful_rtms_list.add(rtms);
     			if (stop) {
-    				// 
+    				// Forecasting approximate mutation score
     			} else {
-        			if (!stop && SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants)) {
+        			if (SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants)) {
         				stop = true;
         			} else {
         				// Continue to measure for making stop decision

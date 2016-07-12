@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.math3.util.Pair;
-
 public class Parabola extends Forecast {
+	
+	public Parabola() {
+		super();
+	}
 
 	@Override
-	public Pair<Double, Double> getAccelerationRate(List<Double> data, int N, double grad) {
+	public void calcAccelerationRate(List<Double> data, int N, double grad) {
 		double min_diff = Double.MAX_VALUE;
 		double min_rate = -1;
 		for (double rate = 0.05; rate < 1; rate += Math.pow(N, -1)) {
@@ -19,7 +21,8 @@ public class Parabola extends Forecast {
 				min_rate = rate;
 			}
 		}
-		return Pair.create(min_rate, min_diff);
+		this.acceleration_rate = min_rate;
+		this.acceleration_rate_error = min_diff;
 	}
 
 	private double getAccelerationRate(List<Double> data, int N, double grad, double rate) {
@@ -68,8 +71,7 @@ public class Parabola extends Forecast {
 			grad *= (1 - rate);
 			if (_rebound && Math.abs(grad) < 0.001) {
 				grad *= -1;
-//				rate *= -1;
-				rate *= -0.5;
+				rate *= -1;
 				_rebound = false;
 			}
 		}
@@ -99,8 +101,7 @@ public class Parabola extends Forecast {
 			
 			if (_rebound && Math.abs(grad) < 0.001) {
 				grad *= -1;
-//				rate *= -1;
-				rate *= -0.5;
+				rate *= -1;
 				_rebound = false;
 			}
 		}
