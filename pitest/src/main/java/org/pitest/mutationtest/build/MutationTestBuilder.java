@@ -74,18 +74,16 @@ public class MutationTestBuilder {
       tus.add(makePreAnalysedUnit(analysed));
     }
 
-    List<Integer> mutation_unit_size_list = new ArrayList<>();
     if (!needAnalysis.isEmpty()) {
+    	long start = System.currentTimeMillis();
+        List<Integer> mutation_unit_size_list = new ArrayList<>();
       for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
           codeClasses, needAnalysis)) {
     	  mutation_unit_size_list.add(ms.size());
 //        tus.add(makeUnanalysedUnit(ms));
       }
-    }
-    Collections.sort(tus, new AnalysisPriorityComparator());
+//    Collections.sort(tus, new AnalysisPriorityComparator());
     
-    if (!needAnalysis.isEmpty()) {
-    	long start = System.currentTimeMillis();
     	Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
     	for (MutationDetails mutation : needAnalysis) {
     		String methodName = mutation.getClassName() + "#" + mutation.getMethod();
@@ -165,7 +163,8 @@ public class MutationTestBuilder {
     return new KnownStatusMutationTestUnit(analysed);
   }
 
-  private MutationAnalysisUnit makeUnanalysedUnit(
+  @SuppressWarnings("unused")
+private MutationAnalysisUnit makeUnanalysedUnit(
       final Collection<MutationDetails> needAnalysis) {
     final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
     FCollection.flatMapTo(needAnalysis, mutationDetailsToTestClass(),

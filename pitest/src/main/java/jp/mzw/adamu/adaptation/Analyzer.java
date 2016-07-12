@@ -31,6 +31,9 @@ public class Analyzer {
     public static void analyze(List<RtMS> rtmsList, RtMS curRtms) throws SQLException {
     	int num_total_mutants = Stats.getInstance().getNumTotalMutants();
     	
+    	long converge_overhead = 0;
+    	long stop_overhead = 0;
+    	
     	boolean burnin = true;
     	boolean stop = false;
     	List<RtMS> cur_rtms_list = new ArrayList<>();
@@ -41,7 +44,7 @@ public class Analyzer {
     			long start = System.currentTimeMillis();
     			boolean converge = ConvergeDiagnostic.converge(cur_rtms_list, num_total_mutants);
     			long end = System.currentTimeMillis();
-                Overhead.getInstance().insert(Overhead.Type.Converge, end - start);
+    			converge_overhead += end - start;
     			if (converge) {
     				burnin = false;
     			} else {
@@ -55,7 +58,7 @@ public class Analyzer {
     				long start = System.currentTimeMillis();
     				boolean stop_decision = SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants);
     				long end = System.currentTimeMillis();
-                    Overhead.getInstance().insert(Overhead.Type.StopDecision, end - start);
+    				stop_overhead += end - start;
         			if (stop_decision) {
         				stop = true;
         			} else {
@@ -64,6 +67,9 @@ public class Analyzer {
     			}
     		}
     	}
+
+        Overhead.getInstance().insert(Overhead.Type.Converge, converge_overhead);
+        Overhead.getInstance().insert(Overhead.Type.StopDecision, stop_overhead);
     	
     	if (burnin) {
     		logger.info("Burn-in period...");
