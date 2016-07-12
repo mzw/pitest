@@ -24,7 +24,7 @@ for(i in 0:nrow(ams)) {
 	ams$score[i] = ams$score[i] * 100
 }
 ## suggested approximate mutation score
-suggested.ams <- read.csv("suggested.ams.csv")
+suggested.ams <- read.csv("ams.csv")
 names(suggested.ams) <- c("elapsed.time", "mutant.order", "score")
 for(i in 0:nrow(suggested.ams)) {
 	suggested.ams$elapsed.time[i] = suggested.ams$elapsed.time[i] / 1000

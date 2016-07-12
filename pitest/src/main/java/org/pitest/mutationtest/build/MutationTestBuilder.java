@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,13 +74,15 @@ public class MutationTestBuilder {
       tus.add(makePreAnalysedUnit(analysed));
     }
 
-//    if (!needAnalysis.isEmpty()) {
-//      for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
-//          codeClasses, needAnalysis)) {
+    List<Integer> mutation_unit_size_list = new ArrayList<>();
+    if (!needAnalysis.isEmpty()) {
+      for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
+          codeClasses, needAnalysis)) {
+    	  mutation_unit_size_list.add(ms.size());
 //        tus.add(makeUnanalysedUnit(ms));
-//      }
-//    }
-//    Collections.sort(tus, new AnalysisPriorityComparator());
+      }
+    }
+    Collections.sort(tus, new AnalysisPriorityComparator());
     
     if (!needAnalysis.isEmpty()) {
     	Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
@@ -99,31 +102,33 @@ public class MutationTestBuilder {
     	}
     	
     	boolean remain = true;
+    	Iterator<Integer> mutation_unit_size_iter = mutation_unit_size_list.iterator();
+    	Integer mutation_unit_size = mutation_unit_size_iter.next();
+		Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
     	do {
-    		final Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
-    		
     		remain = false;
     		for (String methodName : method_mutation_map.keySet()) {
     			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
     			if (0 < mutation_list.size()) {
     				MutationDetails mutation = mutation_list.remove(0);
-
-//    	    		final Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
     				method_based_mutation_list.add(mutation);
-//    	    	    final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-//    	    	    FCollection.flatMapTo(method_based_mutation_list, mutationDetailsToTestClass(), uniqueTestClasses);
-//    	    	    MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, this.workerFactory);
-//    	    		tus.add(mtu);
+    			}
+    			if (method_based_mutation_list.size() == mutation_unit_size) {
+    	    	    final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+    	    	    FCollection.flatMapTo(method_based_mutation_list, mutationDetailsToTestClass(), uniqueTestClasses);
+    	    	    MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, this.workerFactory);
+    	    		tus.add(mtu);
+
+    	    		if (!mutation_unit_size_iter.hasNext()) {
+    	    			break;
+    	    		}
+    	    		method_based_mutation_list = new ArrayList<>();
+    	    		mutation_unit_size = mutation_unit_size_iter.next();
     			}
     			if (0 < mutation_list.size()) {
     				remain = true;
     			}
     		}
-
-    	    final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-    	    FCollection.flatMapTo(method_based_mutation_list, mutationDetailsToTestClass(), uniqueTestClasses);
-    	    MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, this.workerFactory);
-    		tus.add(mtu);
     	} while(remain);
     }
     
