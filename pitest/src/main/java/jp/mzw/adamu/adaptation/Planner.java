@@ -69,6 +69,11 @@ public class Planner {
 		}
 		// Otherwise, forecasting
 		else {
+			// Too small size of time series data for forecasting
+			if (useful_rtms_ave_list.size() < N * 0.01) {
+				return;
+			}
+			
 			// Fitting
 			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
 			// Damp
