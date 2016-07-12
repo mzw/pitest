@@ -26,6 +26,7 @@ public class Planner {
     static Logger logger = LoggerFactory.getLogger(Planner.class);
     
     public static void forecastAms(List<RtMS> usefulRtmsList, RtMS curRtms, int N) throws SQLException {
+    	long start = System.currentTimeMillis();
 		
 		// Manipulating time series data
 		DescriptiveStatistics useful_rtms_stats = new DescriptiveStatistics();
@@ -59,20 +60,19 @@ public class Planner {
 			Damp damp = new Damp();
 			damp.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
 			double rate_for_damp = damp.getAccelerationRate();
-			double error_for_damp = damp.getAccelerationRateError();
+//			double error_for_damp = damp.getAccelerationRateError();
 			Map<Integer, Double> forecasts = damp.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_damp);
 			double ams_damp = Forecast.getFinal(forecasts);
 			if (Forecast.isValid(ams_damp, num_examined_mutants, num_killed_mutants, num_total_mutants)) {
 				ams = ams_damp;
 			}
 		}
+		// Too small size of time series data for forecasting
+		else if (useful_rtms_ave_list.size() < N * 0.01) {
+			// NOP
+		}
 		// Otherwise, forecasting
 		else {
-			// Too small size of time series data for forecasting
-			if (useful_rtms_ave_list.size() < N * 0.01) {
-				return;
-			}
-			
 			// Fitting
 			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
 			// Damp
@@ -115,6 +115,10 @@ public class Planner {
 				}
 			}
 		}
+		
+		long end = System.currentTimeMillis();
+		Overhead.getInstance().insert(Overhead.Type.Forecast, end - start);
+		
 		if (ams != null) {
 			AMS.getInstance().insert(num_examined_mutants, ams);
             logger.info("Approximate mutation score: {} @ {}", ams, num_examined_mutants);

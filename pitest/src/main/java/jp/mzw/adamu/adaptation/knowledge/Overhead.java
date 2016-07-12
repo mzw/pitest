@@ -50,6 +50,7 @@ public class Overhead extends KnowledgeBase implements DataBase {
     public static enum Type {
          Forecast,
          Converge,
+         StopDecision,
     }
 
     public synchronized void insert(Type type, long time) {
@@ -86,6 +87,18 @@ public class Overhead extends KnowledgeBase implements DataBase {
 		        	lines.add(results.getString(1));
 		        }
 	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.converge.csv"),  lines);
+	            results.close();
+	            stmt.close();
+            }
+            // for converging
+            {
+                Statement stmt = getConnection().createStatement();
+				ResultSet results = stmt.executeQuery("select overhead from overhead where source = '" + Overhead.Type.StopDecision + "'");
+				List<String> lines = new ArrayList<>();
+		        while (results.next()) {
+		        	lines.add(results.getString(1));
+		        }
+	            FileUtils.writeLines(new File(Log.getLatestDir(), "overhead.stopdecision.csv"),  lines);
 	            results.close();
 	            stmt.close();
             }

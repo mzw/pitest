@@ -38,7 +38,11 @@ public class Analyzer {
     	for (RtMS rtms : rtmsList) {
     		cur_rtms_list.add(rtms);
     		if (burnin) {
-    			if (ConvergeDiagnostic.converge(cur_rtms_list, num_total_mutants)) {
+    			long start = System.currentTimeMillis();
+    			boolean converge = ConvergeDiagnostic.converge(cur_rtms_list, num_total_mutants);
+    			long end = System.currentTimeMillis();
+                Overhead.getInstance().insert(Overhead.Type.Converge, end - start);
+    			if (converge) {
     				burnin = false;
     			} else {
     				// Burn-in period
@@ -48,7 +52,11 @@ public class Analyzer {
     			if (stop) {
     				// Forecasting approximate mutation score
     			} else {
-        			if (SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants)) {
+    				long start = System.currentTimeMillis();
+    				boolean stop_decision = SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants);
+    				long end = System.currentTimeMillis();
+                    Overhead.getInstance().insert(Overhead.Type.StopDecision, end - start);
+        			if (stop_decision) {
         				stop = true;
         			} else {
         				// Continue to measure for making stop decision
