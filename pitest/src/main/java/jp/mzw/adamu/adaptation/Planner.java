@@ -15,7 +15,6 @@ import jp.mzw.adamu.adaptation.knowledge.RtMS;
 import jp.mzw.adamu.adaptation.knowledge.SAMS;
 import jp.mzw.adamu.adaptation.model.forecast.Damp;
 import jp.mzw.adamu.adaptation.model.forecast.Forecast;
-import jp.mzw.adamu.adaptation.model.forecast.Parabola;
 import jp.mzw.adamu.scale.Scale;
 
 /**
@@ -27,93 +26,29 @@ public class Planner {
     
     public static void forecastAms(List<RtMS> usefulRtmsList, RtMS curRtms, int N) throws SQLException {
     	long start = System.currentTimeMillis();
-		
+
+		Double ams = null;
 		// Manipulating time series data
-		DescriptiveStatistics useful_rtms_stats = new DescriptiveStatistics();
+		List<Double> useful_rtms_list = new ArrayList<>();
 		List<Double> useful_rtms_ave_list = new ArrayList<>();
 		double score_sum = 0;
 		for (int i = 0; i < usefulRtmsList.size(); i++) {
-			RtMS rtms = usefulRtmsList.get(i);
-			
-			double score = rtms.getScore();
-			useful_rtms_stats.addValue(score);
-			
+			double score = usefulRtmsList.get(i).getScore();
+			useful_rtms_list.add(score);
 			score_sum += score;
 			double score_ave = score_sum / (i + 1);
 			useful_rtms_ave_list.add(score_ave);
 		}
-
 		int num_examined_mutants = curRtms.getNumExaminedMutants();
 		int num_killed_mutants = curRtms.getNumKilledMutants();
 		int num_total_mutants = N;
-
-		Double ams = null;
-		// if examined more than 10K mutants, current RtMS might be actual MS
-		if (10000 < usefulRtmsList.size()) {
-			ams = curRtms.getScore();
-		}
-		// If large number of mutants remaining,
-		// Parabola model might answer AMS with large error
-		// therefore, apply only damp model
-		else if (10000 < num_total_mutants - num_examined_mutants) {
-			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
-			Damp damp = new Damp();
-			damp.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_damp = damp.getAccelerationRate();
-//			double error_for_damp = damp.getAccelerationRateError();
-			Map<Integer, Double> forecasts = damp.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_damp);
-			double ams_damp = Forecast.getFinal(forecasts);
-			if (Forecast.isValid(ams_damp, num_examined_mutants, num_killed_mutants, num_total_mutants)) {
-				ams = ams_damp;
-			}
-		}
-		// Too small size of time series data for forecasting
-		else if (useful_rtms_ave_list.size() < N * 0.01) {
-			// NOP
-		}
-		// Otherwise, forecasting
-		else {
-			// Fitting
-			double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
-			// Damp
-			Damp damp = new Damp();
-			damp.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_damp = damp.getAccelerationRate();
-			double error_for_damp = damp.getAccelerationRateError();
-			Map<Integer, Double> forecasts_damp = damp.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_damp);
-			double ams_damp = Forecast.getFinal(forecasts_damp);
-			boolean valid_ams_damp = Forecast.isValid(ams_damp, num_examined_mutants, num_killed_mutants, num_total_mutants);
-			// Parabola
-			Parabola parabola = new Parabola();
-			parabola.calcAccelerationRate(useful_rtms_ave_list, num_total_mutants, grad * -1);
-			double rate_for_parabola = parabola.getAccelerationRate();
-			double error_for_parabola = parabola.getAccelerationRateError();
-			Map<Integer, Double> forecasts_parabola = parabola.forecast(useful_rtms_ave_list, num_examined_mutants, num_total_mutants, grad, rate_for_parabola);
-			double ams_parabola = Forecast.getFinal(forecasts_parabola);
-			boolean valid_ams_parabola = Forecast.isValid(ams_parabola, num_examined_mutants, num_killed_mutants, num_total_mutants);
-			
-			// If useful data has small deviation AND fitting error is small
-			// Damp might be superior to Parabola
-			// because the farmer might answer AMS being closer to current RtMS 
-			if (useful_rtms_stats.getStandardDeviation() < 0.05 && error_for_parabola < 0.01 && error_for_damp < 0.01) {
-				if (valid_ams_damp && error_for_damp <= error_for_parabola) {
-					ams = ams_damp;
-				}
-				else if (valid_ams_parabola && error_for_parabola <= error_for_damp) {
-					ams = ams_parabola;
-				}
-			}
-			// Otherwise, useful data might not be enough to represent actual MS
-			// therefore, parabola might be superior to damp
-			// because the farmer might answer AMS being to more distant from current RtMS 
-			else {
-				if (valid_ams_parabola && error_for_parabola <= error_for_damp) {
-					ams = ams_parabola;
-				}
-				else if (valid_ams_damp && error_for_damp <= error_for_parabola) {
-					ams = ams_damp;
-				}
-			}
+		// Forecasting approximate mutation score
+		double grad = Forecast.getInitialGrad(useful_rtms_ave_list, num_total_mutants);
+		double rate = new Damp().fit(useful_rtms_list, num_total_mutants, grad);
+		Map<Integer, Double> forecasts = new Damp().forecast(useful_rtms_list, num_examined_mutants, num_total_mutants, grad, rate);
+		double forecast = Forecast.getFinal(forecasts);
+		if (Forecast.isValid(forecast, num_examined_mutants, num_killed_mutants, num_total_mutants)) {
+			ams = forecast;
 		}
 		
 		long end = System.currentTimeMillis();

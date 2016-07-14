@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160712"
+S3_URI="s3://adamu/20160714"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -16,7 +16,8 @@ fi
 ## Create class path
 ADAMU_CP="target/classes:target/test-classes:target/dependency/*"
 SUBJECT_CP="${2}target/classes:${2}target/test-classes:${2}target/dependency/*"
-ADAMU_CLASSPATH="${ADAMU_CP}:${SUBJECT_CP}"
+#ADAMU_CLASSPATH="${ADAMU_CP}:${SUBJECT_CP}"
+ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
 
 if [ "" != "${3}" ]; then
 	ADAMU_CLASSPATH="${ADAMU_CLASSPATH}:${3}"

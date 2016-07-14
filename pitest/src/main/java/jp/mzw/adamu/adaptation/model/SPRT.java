@@ -69,13 +69,12 @@ public class SPRT {
 			}
 		}
 
-//		double diff = (1 / (double) N) > 0.001 ? (1 / (double) N) : 0.001;
-//		double theta1 = 0.5 - (5 / (double) N);
 		double theta1 = 0.5 - Math.pow(N, -1) * 5;
-//		double theta1 = 0.5 - diff;
+		double score = (double) k / (double) observations.size();
+		if (0.4 < score && score < 0.6) {
+			theta1 = 0.5 - Math.pow(N, -1) * 25;
+		}
 		double theta2 = 1 - theta1;
-		//    theta2    /    theta1    = (N + 10) / (N - 10)
-		// (1 - theta2) / (1 - theta1) = (N - 10) / (N + 10)
 
 		double lower = getLowerBound(observations.size(), ALPHA, BETA, theta1,
 				theta2);
