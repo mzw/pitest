@@ -111,14 +111,13 @@ public class Monitor {
                     || status.equals(DetectionStatus.RUN_ERROR.name())) {
                 numKilledMutants += 1;
             }
-            curRtms = new RtMS(numKilledMutants, numExaminedMutants);
+            curRtms = new RtMS(numKilledMutants, numExaminedMutants, DetectionStatus.valueOf(status));
             rtmsList.add(curRtms);
         }
-        RtMS rtms = new RtMS(numKilledMutants, numExaminedMutants);
+        RtMS rtms = new RtMS(numKilledMutants, numExaminedMutants, null);
         RtMS.getInstance().insert(rtms.getScore());
         logger.info("Runtime mutation score: {} @ {}", rtms.getScore(), numExaminedMutants);
 //        Analyzer.analyzeApproximateMutationScore(rtms);
-        
         Analyzer.analyze(rtmsList, curRtms);
     }
     

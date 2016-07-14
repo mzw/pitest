@@ -16,6 +16,7 @@ import org.espy.arima.ArimaFitter;
 import org.espy.arima.ArimaForecaster;
 import org.espy.arima.ArimaProcess;
 import org.espy.arima.DefaultArimaForecaster;
+import org.pitest.mutationtest.DetectionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public class Analyzer {
     	boolean stop = false;
     	List<RtMS> cur_rtms_list = new ArrayList<>();
     	List<RtMS> cur_useful_rtms_list = new ArrayList<>();
+    	List<DetectionStatus> cur_useful_status_list = new ArrayList<>();
     	for (RtMS rtms : rtmsList) {
     		cur_rtms_list.add(rtms);
     		if (burnin) {
@@ -52,11 +54,13 @@ public class Analyzer {
     			}
     		} else {
     			cur_useful_rtms_list.add(rtms);
+    			cur_useful_status_list.add(rtms.getStatus());
+    			
     			if (stop) {
     				// Forecasting approximate mutation score
     			} else {
     				long start = System.currentTimeMillis();
-    				boolean stop_decision = SPRT.stop(curRtms.getNumExaminedMutants(), curRtms.getNumKilledMutants(), num_total_mutants);
+    				boolean stop_decision = SPRT.stop(cur_useful_status_list, num_total_mutants);
     				long end = System.currentTimeMillis();
     				stop_overhead += end - start;
         			if (stop_decision) {

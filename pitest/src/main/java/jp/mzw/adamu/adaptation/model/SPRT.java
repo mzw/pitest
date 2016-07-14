@@ -26,26 +26,11 @@ public class SPRT {
 	}
 	
 	private static Action decide(int n, int k, int N) {
-		double theta1 = 0.5 - (5 / (double) N);
-		double theta2 = 1 - theta1;
-		double lower = getLowerBound(n, ALPHA, BETA, theta1,
-				theta2);
-		double upper = getUpperBound(n, ALPHA, BETA, theta1,
-				theta2);
-
-		if (k < lower)
-			return Action.AcceptH2;
-		else if (upper < k)
-			return Action.AcceptH1;
-		else
-			return Action.Continue;
+		return _decide(n, k, N);
 		
 	}
 	
 	public static boolean stop(List<DetectionStatus> observations, int total) {
-//		if (observations.size() < 85) {
-//			return false;
-//		}
 		if (!decide(observations, total).equals(Action.Continue)) {
 			return true;
 		}
@@ -68,18 +53,19 @@ public class SPRT {
 				k++;
 			}
 		}
-
+		return _decide(observations.size(), k, N);
+	}
+	
+	private static Action _decide(int n, int k, int N) {
 		double theta1 = 0.5 - Math.pow(N, -1) * 5;
-		double score = (double) k / (double) observations.size();
+		double score = (double) k / (double) n;
 		if (0.4 < score && score < 0.6) {
 			theta1 = 0.5 - Math.pow(N, -1) * 25;
 		}
 		double theta2 = 1 - theta1;
 
-		double lower = getLowerBound(observations.size(), ALPHA, BETA, theta1,
-				theta2);
-		double upper = getUpperBound(observations.size(), ALPHA, BETA, theta1,
-				theta2);
+		double lower = getLowerBound(n, ALPHA, BETA, theta1, theta2);
+		double upper = getUpperBound(n, ALPHA, BETA, theta1, theta2);
 
 		if (k < lower)
 			return Action.AcceptH2;
@@ -87,7 +73,6 @@ public class SPRT {
 			return Action.AcceptH1;
 		else
 			return Action.Continue;
-
 	}
 
 	private static double getLowerBound(int k, double alpha, double beta,

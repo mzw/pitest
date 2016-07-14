@@ -10,16 +10,19 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FileUtils;
+import org.pitest.mutationtest.DetectionStatus;
 
 public class RtMS extends KnowledgeBase implements DataBase {
     
     int numKilledMutants;
     int numExaminedMutants;
+    DetectionStatus status;
     double score;
     
-    public RtMS(int numKilledMutants, int numExaminedMutants) {
+    public RtMS(int numKilledMutants, int numExaminedMutants, DetectionStatus status) {
          this.numKilledMutants = numKilledMutants;
          this.numExaminedMutants = numExaminedMutants;
+         this.status = status;
          this.score = (double) numKilledMutants / (double) numExaminedMutants;
     }
     
@@ -29,6 +32,10 @@ public class RtMS extends KnowledgeBase implements DataBase {
     
     public int getNumExaminedMutants() {
          return this.numExaminedMutants;
+    }
+    
+    public DetectionStatus getStatus() {
+    	return this.status;
     }
     
     public double getScore() {
