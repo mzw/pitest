@@ -41,6 +41,9 @@ public abstract class Forecast implements IForecast {
 	}
 
 	public static double getFinal(Map<Integer, Double> data) {
+		if (data == null) {
+			return -1;
+		}
 		if (data.size() == 0) {
 			return -1;
 		}
