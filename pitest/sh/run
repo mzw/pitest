@@ -69,3 +69,5 @@ aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
 done
 
 echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
+
+sh/ec2-stop
