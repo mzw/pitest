@@ -18,11 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.pitest.classinfo.ClassName;
@@ -75,64 +72,24 @@ public class MutationTestBuilder {
     }
 
     if (!needAnalysis.isEmpty()) {
-    	long start = System.currentTimeMillis();
-        List<Integer> mutation_unit_size_list = new ArrayList<>();
-      for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
-          codeClasses, needAnalysis)) {
-    	  mutation_unit_size_list.add(ms.size());
-//        tus.add(makeUnanalysedUnit(ms));
-      }
-//    Collections.sort(tus, new AnalysisPriorityComparator());
-    
-    	Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
-    	for (MutationDetails mutation : needAnalysis) {
-    		String methodName = mutation.getClassName() + "#" + mutation.getMethod();
-    		List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-    		if (mutation_list == null) {
-    			mutation_list = new ArrayList<>();
-    		}
-    		mutation_list.add(mutation);
-    		method_mutation_map.put(methodName, mutation_list);
-    	}
-    	
-    	for (String methodName : method_mutation_map.keySet()) {
-    		List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-    		Collections.shuffle(mutation_list);
-    	}
-    	
-    	boolean remain = true;
-    	Iterator<Integer> mutation_unit_size_iter = mutation_unit_size_list.iterator();
-    	Integer mutation_unit_size = mutation_unit_size_iter.next();
-		Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
-    	do {
-    		remain = false;
-    		for (String methodName : method_mutation_map.keySet()) {
-    			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-    			if (0 < mutation_list.size()) {
-    				MutationDetails mutation = mutation_list.remove(0);
-    				method_based_mutation_list.add(mutation);
-    			}
-    			if (method_based_mutation_list.size() == mutation_unit_size) {
-    	    	    final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-    	    	    FCollection.flatMapTo(method_based_mutation_list, mutationDetailsToTestClass(), uniqueTestClasses);
-    	    	    MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, this.workerFactory);
-    	    		tus.add(mtu);
-
-    	    		if (!mutation_unit_size_iter.hasNext()) {
-    	    			break;
-    	    		}
-    	    		method_based_mutation_list = new ArrayList<>();
-    	    		mutation_unit_size = mutation_unit_size_iter.next();
-    			}
-    			if (0 < mutation_list.size()) {
-    				remain = true;
-    			}
-    		}
-    	} while(remain);
-    	long end = System.currentTimeMillis();
-    	jp.mzw.adamu.adaptation.knowledge.Overhead.getInstance().insert(
-    			jp.mzw.adamu.adaptation.knowledge.Overhead.Type.TestExecOrder, end - start);
+//        for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
+//                codeClasses, needAnalysis)) {
+//				tus.add(makeUnanalysedUnit(ms));
+//        }
+    	tus.addAll(jp.mzw.adamu.adaptation.Monitor.orderTestExecutionOnMutants(codeClasses, needAnalysis, this.grouper, this.workerFactory));
     }
+    Collections.sort(tus, new AnalysisPriorityComparator());
+    
+    // For confirming randomness
+//    for (MutationAnalysisUnit unit : tus) {
+//    	if (unit instanceof org.pitest.mutationtest.build.MutationTestUnit) {
+//    		org.pitest.mutationtest.build.MutationTestUnit _unit = (org.pitest.mutationtest.build.MutationTestUnit) unit;
+//    		for (MutationDetails mutation : _unit.getAvailableMutations()) {
+//    	    	System.out.println(mutation.getDescription());
+//    		}
+//    	}
+//    }
+//    System.exit(0);
     
     return tus;
   }
@@ -163,8 +120,7 @@ public class MutationTestBuilder {
     return new KnownStatusMutationTestUnit(analysed);
   }
 
-  @SuppressWarnings("unused")
-private MutationAnalysisUnit makeUnanalysedUnit(
+  private MutationAnalysisUnit makeUnanalysedUnit(
       final Collection<MutationDetails> needAnalysis) {
     final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
     FCollection.flatMapTo(needAnalysis, mutationDetailsToTestClass(),
@@ -191,7 +147,7 @@ private MutationAnalysisUnit makeUnanalysedUnit(
     };
   }
 
-  private static F<MutationDetails, Iterable<ClassName>> mutationDetailsToTestClass() {
+  public static F<MutationDetails, Iterable<ClassName>> mutationDetailsToTestClass() {
     return new F<MutationDetails, Iterable<ClassName>>() {
       @Override
       public Iterable<ClassName> apply(final MutationDetails a) {

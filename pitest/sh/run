@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160714"
+S3_URI="s3://adamu/20160719"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -14,10 +14,14 @@ else
 fi
 
 ## Create class path
+PRIORI_CP=""
+if [ -f ${2}target/dependency/xercesImpl-2.4.0.jar ] && [ -f ${2}target/dependency/xml-apis-1.3.04.jar ]; then
+	PRIORI_CP="${2}target/dependency/xercesImpl-2.4.0.jar:${2}target/dependency/xml-apis-1.3.04.jar"
+fi
 ADAMU_CP="target/classes:target/test-classes:target/dependency/*"
 SUBJECT_CP="${2}target/classes:${2}target/test-classes:${2}target/dependency/*"
-ADAMU_CLASSPATH="${ADAMU_CP}:${SUBJECT_CP}"
-#ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
+ADAMU_CLASSPATH="${PRIORI_CP}:${ADAMU_CP}:${SUBJECT_CP}"
+# ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
 
 if [ "" != "${3}" ]; then
 	ADAMU_CLASSPATH="${ADAMU_CLASSPATH}:${3}"
@@ -41,6 +45,12 @@ fi
 
 ## Copy results
 ADAMU_DIR="res/rawdata/latest/${1}"
+if [ -d ${ADAMU_DIR} ]; then
+	rm -r ${ADAMU_DIR}
+fi
+if [ -d ${ADAMU_DIR}_${i} ]; then
+	rm -r ${ADAMU_DIR}_${i}
+fi
 mkdir -p ${ADAMU_DIR}
 cp logs/latest/* ${ADAMU_DIR}
 
