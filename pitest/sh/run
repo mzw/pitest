@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160719"
+S3_URI="s3://adamu/20160720"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -28,8 +28,8 @@ if [ "" != "${3}" ]; then
 fi
 
 ## for randomness
-for i in 0 1 2 3 4 5 6 7 8 9
-# for i in 0
+#for i in 0 1 2 3 4 5 6 7 8 9
+for i in 0
 do
 
 if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
@@ -65,9 +65,9 @@ R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
 mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+#aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
 done
 
 echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
 
-sh/ec2-stop
+#sh/ec2-stop

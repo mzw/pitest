@@ -81,11 +81,13 @@ public class MutationTestBuilder {
     Collections.sort(tus, new AnalysisPriorityComparator());
     
     // For confirming randomness
+//    int num_unit = 0;
 //    for (MutationAnalysisUnit unit : tus) {
+//    	System.out.println("#Unit: " + ++num_unit + ", " + unit.priority());
 //    	if (unit instanceof org.pitest.mutationtest.build.MutationTestUnit) {
 //    		org.pitest.mutationtest.build.MutationTestUnit _unit = (org.pitest.mutationtest.build.MutationTestUnit) unit;
 //    		for (MutationDetails mutation : _unit.getAvailableMutations()) {
-//    	    	System.out.println(mutation.getDescription());
+//    	    	System.out.println("\t" + mutation.getClassName() + "#" + mutation.getMethod() + "@" + mutation.getLineNumber() + " <- " + mutation.getMutator());
 //    		}
 //    	}
 //    }
@@ -120,6 +122,7 @@ public class MutationTestBuilder {
     return new KnownStatusMutationTestUnit(analysed);
   }
 
+  @SuppressWarnings("unused")
   private MutationAnalysisUnit makeUnanalysedUnit(
       final Collection<MutationDetails> needAnalysis) {
     final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();

@@ -28,6 +28,9 @@ import xal.extension.fit.DampedSinusoidFit;
  */
 public class Analyzer {
     static Logger logger = LoggerFactory.getLogger(Analyzer.class);
+    
+    private static int num_mutants_burnin = -1;
+    private static int num_mutants_stop = -1;
 
     public static void analyze(List<RtMS> rtmsList, RtMS curRtms) throws SQLException {
     	int num_total_mutants = Stats.getInstance().getNumTotalMutants();
@@ -40,8 +43,28 @@ public class Analyzer {
     	List<RtMS> cur_rtms_list = new ArrayList<>();
     	List<RtMS> cur_useful_rtms_list = new ArrayList<>();
     	List<DetectionStatus> cur_useful_status_list = new ArrayList<>();
+    	int num_mutants = 0;
     	for (RtMS rtms : rtmsList) {
+    		++num_mutants;
     		cur_rtms_list.add(rtms);
+    		
+    		// already calculated
+    		// but might be garbage-collected...
+    		if (0 < num_mutants_burnin && 0 < num_mutants_stop) {
+        		if (num_mutants < num_mutants_burnin) {
+        			burnin = true;
+        		} else if (num_mutants_burnin <= num_mutants) {
+        			burnin = false;
+        			cur_useful_rtms_list.add(rtms);
+        			if (num_mutants < num_mutants_stop) {
+        				stop = false;
+            		} else if (num_mutants_stop <= num_mutants) {
+        				stop = true;
+            		}
+        		}
+    			continue;
+    		}
+    		
     		if (burnin) {
     			long start = System.currentTimeMillis();
     			boolean converge = ConvergeDiagnostic.converge(cur_rtms_list, num_total_mutants);
@@ -49,6 +72,7 @@ public class Analyzer {
     			converge_overhead += end - start;
     			if (converge) {
     				burnin = false;
+    				num_mutants_burnin = num_mutants;
     			} else {
     				// Burn-in period
     			}
@@ -65,6 +89,7 @@ public class Analyzer {
     				stop_overhead += end - start;
         			if (stop_decision) {
         				stop = true;
+        				num_mutants_stop = num_mutants;
         			} else {
         				// Continue to measure for making stop decision
         			}
