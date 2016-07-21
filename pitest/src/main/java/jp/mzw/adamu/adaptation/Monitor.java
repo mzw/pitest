@@ -85,14 +85,6 @@ public class Monitor {
 		long start = System.currentTimeMillis();
 		List<MutationAnalysisUnit> ret = new ArrayList<MutationAnalysisUnit>();
 
-		double ave_num_mutants_in_unit = 0;
-		int num_unit = 1;
-		for (final Collection<MutationDetails> ms : grouper.groupMutations(codeClasses, mutations)) {
-			ave_num_mutants_in_unit += ms.size();
-			num_unit++;
-		}
-		ave_num_mutants_in_unit /= num_unit;
-
 		Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
 		for (MutationDetails mutation : mutations) {
 			String methodName = mutation.getClassName() + "#" + mutation.getMethod();
@@ -108,37 +100,23 @@ public class Monitor {
 			Collections.shuffle(mutation_list);
 		}
 		boolean remain = true;
-		boolean combine = false;
-		int num_empty = 0;
-		Collection<MutationDetails> method_based_mutation_list = null;
 		do {
-			if (!combine) {
-				method_based_mutation_list = new ArrayList<>();
-			}
+			Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
 			remain = false;
-			int cur_num_empty = 0;
 			for (String methodName : method_mutation_map.keySet()) {
 				List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
 				if (0 < mutation_list.size()) {
 					MutationDetails mutation = mutation_list.remove(0);
 					method_based_mutation_list.add(mutation);
 				}
-				if (mutation_list.isEmpty()) {
-					cur_num_empty++;
-				} else {
+				if (!mutation_list.isEmpty()) {
 					remain = true;
 				}
 			}
-			if (method_based_mutation_list.size() < num_empty && method_based_mutation_list.size() < ave_num_mutants_in_unit) {
-				combine = true;
-			} else {
-				combine = false;
-				final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-				FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
-				MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory);
-				ret.add(mtu);
-			}
-			num_empty = cur_num_empty;
+			final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+			FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
+			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory);
+			ret.add(mtu);
 		} while (remain);
 		long end = System.currentTimeMillis();
 		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);

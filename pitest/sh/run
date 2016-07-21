@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160720"
+S3_URI="s3://adamu/20160721"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -65,7 +65,7 @@ R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
 mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-#aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
 done
 
 echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
