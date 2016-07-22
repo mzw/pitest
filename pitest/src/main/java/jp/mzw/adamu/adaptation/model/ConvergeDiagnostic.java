@@ -12,11 +12,11 @@ public class ConvergeDiagnostic {
 		double _e = 0.005;
 		double _p = 0.95;
 		// Solve quartile
-		double min_mutation_rate = 0.05;
+		double min_mutation_rate = 0.2;
 		if (10000 < N) {
-			min_mutation_rate = 0.01;
+			min_mutation_rate = 0.1;
 		} else if (N < 1000) {
-			min_mutation_rate = 0.5;
+			min_mutation_rate = 0.3;
 		}
 		double nd = NormalDistribution.quantile(0.5 * (1 + _p), 0, 1);
 		double a = 1;
@@ -32,7 +32,7 @@ public class ConvergeDiagnostic {
 			return false;
 		}
 		final String var_name = "adamu";
-		raftery.setTestVariableName(new String[]{var_name});
+		raftery.setTestVariableName(new String[] { var_name });
 		HashMap<String, double[]> sample_values = new HashMap<>();
 		sample_values.put(var_name, data);
 		raftery.updateValues(sample_values);

@@ -168,18 +168,12 @@ public class Monitor {
 		int numKilledMutants = 0;
 		Statement stmt = TestResult.getInstance().getConnection().createStatement();
 		ResultSet results = stmt.executeQuery("select status from test_results");
-		boolean init_no_coverage = true;
 		while (results.next()) {
 			numExaminedMutants += 1;
 			String status = results.getString(1);
 			if (status.equals(DetectionStatus.KILLED.name()) || status.equals(DetectionStatus.MEMORY_ERROR.name())
 					|| status.equals(DetectionStatus.TIMED_OUT.name()) || status.equals(DetectionStatus.RUN_ERROR.name())) {
 				numKilledMutants += 1;
-			}
-			if (init_no_coverage && status.equals(DetectionStatus.NO_COVERAGE.name())) {
-				continue;
-			} else {
-				init_no_coverage = false;
 			}
 			curRtms = new RtMS(numKilledMutants, numExaminedMutants, DetectionStatus.valueOf(status));
 			rtmsList.add(curRtms);
