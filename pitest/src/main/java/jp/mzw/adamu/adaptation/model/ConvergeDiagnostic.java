@@ -16,7 +16,7 @@ public class ConvergeDiagnostic {
 		if (10000 < N) {
 			min_mutation_rate = 0.01;
 		} else if (N < 1000) {
-			min_mutation_rate = 0.1;
+			min_mutation_rate = 0.5;
 		}
 		double nd = NormalDistribution.quantile(0.5 * (1 + _p), 0, 1);
 		double a = 1;
