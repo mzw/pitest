@@ -32,7 +32,7 @@ import org.apache.commons.math3.util.MathUtils;
 import cern.jet.math.Bessel;
 import cern.jet.stat.Gamma;
 
-//import umontreal.iro.lecuyer.probdist.CramerVonMisesDist;
+import umontreal.iro.lecuyer.probdist.CramerVonMisesDist;
 
 import dr.stats.DiscreteStatistics;
 
@@ -125,11 +125,11 @@ System.out.println(length +"\t"+ Arrays.toString(t)+"\t"+ length);
 			System.out.println(n +"\t"+ S0 +"\t"+  
 					StatUtils.sum(B) +"\t"+ StatUtils.sum(Bsq) +"\t"+ ind);
 			
-//			CramerVonMisesDist dist = new CramerVonMisesDist(2);
-//			System.out.println(dist.barF(ind));
-//			System.out.println(dist.cdf(ind));
-//			System.out.println(dist.density(ind));
-//			System.out.println(dist.density(ind));
+			CramerVonMisesDist dist = new CramerVonMisesDist(2);
+			System.out.println(dist.barF(ind));
+			System.out.println(dist.cdf(ind));
+			System.out.println(dist.density(ind));
+			System.out.println(dist.density(ind));
 //			The Cramer-von Mises Distribution
 			boolean ind2 = pcramer(ind); // TODO:
 
