@@ -7,42 +7,44 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 import org.apache.commons.io.FileUtils;
 import org.pitest.mutationtest.DetectionStatus;
 
 public class RtMS extends KnowledgeBase implements DataBase {
+	
+	public static 
     
     int numKilledMutants;
     int numExaminedMutants;
     DetectionStatus status;
     double score;
     
-    public RtMS(int numKilledMutants, int numExaminedMutants, DetectionStatus status) {
-         this.numKilledMutants = numKilledMutants;
-         this.numExaminedMutants = numExaminedMutants;
-         this.status = status;
-         this.score = (double) numKilledMutants / (double) numExaminedMutants;
-    }
-    
-    public int getNumKilledMutants() {
-         return this.numKilledMutants;
-    }
-    
-    public int getNumExaminedMutants() {
-         return this.numExaminedMutants;
-    }
-    
-    public DetectionStatus getStatus() {
-    	return this.status;
-    }
-    
-    public double getScore() {
-         return this.score;
-    }
+//    public RtMS(int numKilledMutants, int numExaminedMutants, DetectionStatus status) {
+//         this.numKilledMutants = numKilledMutants;
+//         this.numExaminedMutants = numExaminedMutants;
+//         this.status = status;
+//         this.score = (double) numKilledMutants / (double) numExaminedMutants;
+//    }
+//    
+//    public int getNumKilledMutants() {
+//         return this.numKilledMutants;
+//    }
+//    
+//    public int getNumExaminedMutants() {
+//         return this.numExaminedMutants;
+//    }
+//    
+//    public DetectionStatus getStatus() {
+//    	return this.status;
+//    }
+//    
+//    public double getScore() {
+//         return this.score;
+//    }
 
-    protected RtMS() { /* NOP */ }
+//    protected RtMS() { /* NOP */ }
     protected static RtMS instance = null;
     public static RtMS getInstance() {
         if (instance == null) {
@@ -76,7 +78,21 @@ public class RtMS extends KnowledgeBase implements DataBase {
         }
     }
     
-    public synchronized void insert(double score) throws SQLException {
+//    public synchronized void insert(double score) throws SQLException {
+//        Statement stmt = getConnection().createStatement();
+//        String query = new StringBuilder()
+//            .append("insert into rtms values (")
+//            .append(System.currentTimeMillis())
+//            .append(",")
+//            .append(score)
+//            .append(")")
+//            .toString();
+//        stmt.executeUpdate(query);
+//        stmt.close();
+//    }
+
+    public synchronized double insert(int numExaminedMutants, int numKilledMutants) throws SQLException {
+    	double score = KnowledgeBase.getScore(numExaminedMutants, numKilledMutants);
         Statement stmt = getConnection().createStatement();
         String query = new StringBuilder()
             .append("insert into rtms values (")
@@ -87,24 +103,25 @@ public class RtMS extends KnowledgeBase implements DataBase {
             .toString();
         stmt.executeUpdate(query);
         stmt.close();
+        return score;
     }
     
-    public double[] getRtmsArray() throws SQLException {
-        Statement stmt = getConnection().createStatement();
-        ResultSet results = stmt.executeQuery("select score from rtms");
-        ArrayList<Double> rtmsList = new ArrayList<Double>();
-        while (results.next()) {
-             double score = results.getDouble(1);
-             rtmsList.add(score);
-        }
-        results.close();
-        stmt.close();
-        double[] rtmsArray = new double[rtmsList.size()];
-        for (int i = 0; i < rtmsList.size(); i++) {
-             rtmsArray[i] = rtmsList.get(i);
-        }
-        return rtmsArray;
-    }
+//    public double[] getRtmsArray() throws SQLException {
+//        Statement stmt = getConnection().createStatement();
+//        ResultSet results = stmt.executeQuery("select score from rtms");
+//        ArrayList<Double> rtmsList = new ArrayList<Double>();
+//        while (results.next()) {
+//             double score = results.getDouble(1);
+//             rtmsList.add(score);
+//        }
+//        results.close();
+//        stmt.close();
+//        double[] rtmsArray = new double[rtmsList.size()];
+//        for (int i = 0; i < rtmsList.size(); i++) {
+//             rtmsArray[i] = rtmsList.get(i);
+//        }
+//        return rtmsArray;
+//    }
 
     @Override
     public void output() {

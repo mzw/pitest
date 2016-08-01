@@ -12,22 +12,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jp.mzw.adamu.adaptation.knowledge.KnowledgeBase;
+import jp.mzw.adamu.adaptation.knowledge.Mutations;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.RtMS;
-import jp.mzw.adamu.adaptation.knowledge.TestResult;
+import jp.mzw.adamu.adaptation.knowledge.TestResults;
+import jp.mzw.adamu.adaptation.knowledge.data.TestResult;
 
 import org.pitest.classinfo.ClassName;
 import org.pitest.functional.FCollection;
 import org.pitest.mutationtest.DetectionStatus;
-import org.pitest.mutationtest.MutationStatusTestPair;
 import org.pitest.mutationtest.build.MutationAnalysisUnit;
 import org.pitest.mutationtest.build.MutationGrouper;
 import org.pitest.mutationtest.build.MutationTestBuilder;
 import org.pitest.mutationtest.build.MutationTestUnit;
 import org.pitest.mutationtest.build.WorkerFactory;
 import org.pitest.mutationtest.engine.MutationDetails;
-import org.pitest.mutationtest.engine.MutationIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,25 +41,8 @@ public class Monitor {
 	static Logger logger = LoggerFactory.getLogger(Monitor.class);
 
 	/**
-	 * Incrementally count the number of available mutants
-	 * 
-	 * @param availableMutations
-	 * @throws SQLException
-	 */
-	public static void getAailableMutations(Collection<MutationDetails> availableMutations) {
-		try {
-			int num = availableMutations.size();
-			Stats.getInstance().insertNumMutants(num);
-			logger.info("Available mutations: {}", num);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Store start time in Unix time
-	 * 
-	 * @throws SQLException
+	 * Store a Unix time when PIT starts mutation testing
+	 * @throws SQLException is caused when AdaMu fails to store a Unix time into DB
 	 */
 	public static void startAdaMuLogger() {
 		try {
@@ -71,14 +55,13 @@ public class Monitor {
 	}
 
 	/**
-	 * Control an order of test executions on generated mutants which is based
-	 * on methods being mutated
-	 * 
+	 * Order mutants to be examined by test cases
+	 * according to methods where PIT applies mutation operators to create them
 	 * @param codeClasses
 	 * @param mutations
 	 * @param grouper
 	 * @param workerFactory
-	 * @return
+	 * @return 
 	 */
 	public static List<MutationAnalysisUnit> orderTestExecutionOnMutants(final Collection<ClassName> codeClasses, final Collection<MutationDetails> mutations,
 			final MutationGrouper grouper, WorkerFactory workerFactory) {
@@ -120,69 +103,92 @@ public class Monitor {
 		} while (remain);
 		long end = System.currentTimeMillis();
 		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);
-
-		return ret;
-	}
-
-	public static void monitorMutationResult(MutationIdentifier mutationId, MutationStatusTestPair result) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(mutationId.getClassName()).append("#").append(mutationId.getLocation().getMethodName()).append(":").append("lineno").append("<")
-				.append(mutationId.getMutator());
-		TestResult.getInstance().insert(builder.toString(), result.getStatus().toString());
+		
+		// Store mutation information
 		try {
-			measureRuntimeMutationScore();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			Mutations db = Mutations.getInstance();
+			for (MutationAnalysisUnit unit : ret) {
+				MutationTestUnit _unit = (MutationTestUnit) unit;
+				for (MutationDetails mutation : _unit.getAvailableMutations()) {
+					db.insert(mutation.hashCode(), mutation.getClassName().toString(), mutation.getMethod().name(), mutation.getLineNumber(), mutation.getMutator());
+				}
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
 
-	public static void monitorMutationsResult(Collection<MutationDetails> mutations, DetectionStatus status) {
+		return ret;
+	}
+	
+	/**
+	 * Monitor test execution results on each mutant created by PIT
+	 * @param mutation a mutants created by PIT
+	 * @param status a test execution result on a mutant
+	 */
+	public static void monitorMutationResult(MutationDetails mutation, DetectionStatus status) {
 		if (!status.equals(DetectionStatus.NOT_STARTED) && !status.equals(DetectionStatus.STARTED)) {
-			for (MutationDetails mutation : mutations) {
-				StringBuilder builder = new StringBuilder();
-				builder.append(mutation.getClassName()).append("#").append(mutation.getMethod()).append(":").append(mutation.getLineNumber()).append("<")
-						.append(mutation.getMutator());
-				TestResult.getInstance().insert(builder.toString(), status.toString());
-				try {
-					measureRuntimeMutationScore();
-				} catch (InstantiationException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+			TestResults.getInstance().insert(
+					mutation.hashCode(),
+					mutation.getClassName().toString(),
+					mutation.getMethod().name(),
+					mutation.getLineNumber(),
+					mutation.getMutator(),
+					status.toString()
+				);
+			try {
+				measureRuntimeMutationScore();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
-	public static void measureRuntimeMutationScore() throws SQLException, InstantiationException, IllegalAccessException {
-		List<RtMS> rtmsList = new ArrayList<>();
-		RtMS curRtms = null;
+	/**
+	 * Monitor test execution results on each mutant created by PIT
+	 * @param mutations mutants created by PIT
+	 * @param status test execution results on mutants
+	 */
+	public static void monitorMutationsResult(Collection<MutationDetails> mutations, DetectionStatus status) {
+		for (MutationDetails mutation : mutations) {
+			monitorMutationResult(mutation, status);
+		}
+	}
 
+	/**
+	 * Measure runtime mutation score (RtMS)
+	 * @throws SQLException is caused when AdaMu fails to store an RtMS into DB
+	 */
+	public static void measureRuntimeMutationScore() throws SQLException {
+		// For measuring runtime mutation score (RtMS)
 		int numExaminedMutants = 0;
 		int numKilledMutants = 0;
-		Statement stmt = TestResult.getInstance().getConnection().createStatement();
-		ResultSet results = stmt.executeQuery("select status from test_results");
+		// For analyzing burn-in period, quit timing, and approximate mutation score (Analyzer)
+		List<TestResult> test_result_list = new ArrayList<>();
+		
+		// Read from DB
+		Statement stmt = TestResults.getInstance().getConnection().createStatement();
+		ResultSet results = stmt.executeQuery("select hashcode, class_name, method_name, lineno, mutator, status from test_results");
 		while (results.next()) {
+			// Data from DB
+			int hashcode = results.getInt(1);
+			String class_name = results.getString(2);
+			String method_name = results.getString(3);
+			int lineno = results.getInt(4);
+			String mutator = results.getString(5);
+			// For RtMS
 			numExaminedMutants += 1;
-			String status = results.getString(1);
-			if (status.equals(DetectionStatus.KILLED.name()) || status.equals(DetectionStatus.MEMORY_ERROR.name())
-					|| status.equals(DetectionStatus.TIMED_OUT.name()) || status.equals(DetectionStatus.RUN_ERROR.name())) {
+			DetectionStatus status = DetectionStatus.valueOf(results.getString(6));
+			if (KnowledgeBase.isKilled(status)) {
 				numKilledMutants += 1;
 			}
-			curRtms = new RtMS(numKilledMutants, numExaminedMutants, DetectionStatus.valueOf(status));
-			rtmsList.add(curRtms);
+			// For AdaMu Analyzer
+			test_result_list.add(new TestResult(hashcode, class_name, method_name, lineno, mutator, status));
 		}
-		RtMS rtms = new RtMS(numKilledMutants, numExaminedMutants, null);
-		RtMS.getInstance().insert(rtms.getScore());
-		logger.info("Runtime mutation score: {} @ {}", rtms.getScore(), numExaminedMutants);
-		// Analyzer.analyzeApproximateMutationScore(rtms);
-		Analyzer.analyze(rtmsList, curRtms);
+		// RtMS
+		double rtms = RtMS.getInstance().insert(numExaminedMutants, numKilledMutants);
+		logger.info("Runtime mutation score: {} @ {}", rtms, numExaminedMutants);
+		// Analyzer
+		Analyzer.analyze(test_result_list);
 	}
 
 }

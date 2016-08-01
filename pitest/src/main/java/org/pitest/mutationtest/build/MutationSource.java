@@ -53,7 +53,6 @@ public class MutationSource {
         .findMutations(clazz));
 
     assignTestsToMutations(availableMutations);
-    jp.mzw.adamu.adaptation.Monitor.getAailableMutations(availableMutations);
     
     return availableMutations;
 

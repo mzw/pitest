@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160722"
+S3_URI="s3://adamu/20160801"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -68,6 +68,6 @@ mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
 aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
 done
 
-echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
+# echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
 
 #sh/ec2-stop

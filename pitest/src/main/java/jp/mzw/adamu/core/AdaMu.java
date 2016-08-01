@@ -98,7 +98,7 @@ public class AdaMu {
         data.setTargetTests(Glob.toGlobPredicates(testClassList));
         data.setMutators(mutatorList);
         
-        Stats.getInstance().insertNumTests(testClassList.size());
+//        Stats.getInstance().insertNumTests(testClassList.size());
         
         EntryPoint e = new EntryPoint();
         AnalysisResult result = e.execute(null, data, plugins, new HashMap<String, String>());

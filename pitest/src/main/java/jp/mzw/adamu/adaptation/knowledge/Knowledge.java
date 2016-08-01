@@ -10,10 +10,10 @@ public class Knowledge {
 
     public static final String[] CLASS_NAMES = new String[] {
         Stats.class.getName(),
-        TestResult.class.getName(),
+        Mutations.class.getName(),
+        TestResults.class.getName(),
         RtMS.class.getName(),
         AMS.class.getName(),
-//        SAMS.class.getName(),
         Overhead.class.getName(),
     };
 

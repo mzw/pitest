@@ -12,4 +12,12 @@ mvn install:install-file \
 	-Dversion=1.0 \
 	-Dpackaging=jar \
 	-DgeneratePom=true
+	
+mvn install:install-file \
+    -Dfile=/path/to/pitest/pitest/lib/javastat_beta1.4.jar \
+    -DgroupId=javastat \
+    -DartifactId=javastat \
+    -Dversion=1.4.beta \
+    -Dpackaging=jar \
+    -DgeneratePom=true
 ```

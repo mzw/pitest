@@ -34,10 +34,10 @@ public class Stats extends KnowledgeBase implements DataBase {
     @Override
     public void init() throws SQLException {
         Statement stmt = getConnection().createStatement();
-        stmt.executeUpdate("drop table if exists tests");
-        stmt.executeUpdate("create table tests (num integer)");
-        stmt.executeUpdate("drop table if exists available_mutants");
-        stmt.executeUpdate("create table available_mutants (num integer)");
+//        stmt.executeUpdate("drop table if exists tests");
+//        stmt.executeUpdate("create table tests (num integer)");
+//        stmt.executeUpdate("drop table if exists available_mutants");
+//        stmt.executeUpdate("create table available_mutants (num integer)");
         stmt.executeUpdate("drop table if exists stats");
         stmt.executeUpdate("create table stats (time integer, key string, value string)");
         stmt.close();
@@ -78,7 +78,7 @@ public class Stats extends KnowledgeBase implements DataBase {
     
     public static enum Label {
          StartTime,
-         AvailableMutations,
+//         AvailableMutations,
          Burnin,
          Suggest,
          Quit,
@@ -94,52 +94,52 @@ public class Stats extends KnowledgeBase implements DataBase {
         return start;
     }
 
-    /**
-     * Tests
-     * @throws SQLException 
-     */
-    public synchronized void insertNumTests(int num) throws SQLException {
-        insert("insert into tests values (" + num + ")");
-    }
-    static int numTests = -1;
-    public int getNumTests() {
-         if (0 <= numTests) {
-              return numTests;
-         }
-         try {
-              Statement stmt = getConnection().createStatement();
-              ResultSet results = stmt.executeQuery("select num from tests");
-              numTests = Integer.parseInt(results.getString(1));
-              results.close();
-              stmt.close();
-         } catch (SQLException e) {
-              e.printStackTrace();
-         }
-         return numTests;
-    }
+//    /**
+//     * Tests
+//     * @throws SQLException 
+//     */
+//    public synchronized void insertNumTests(int num) throws SQLException {
+//        insert("insert into tests values (" + num + ")");
+//    }
+//    static int numTests = -1;
+//    public int getNumTests() {
+//         if (0 <= numTests) {
+//              return numTests;
+//         }
+//         try {
+//              Statement stmt = getConnection().createStatement();
+//              ResultSet results = stmt.executeQuery("select num from tests");
+//              numTests = Integer.parseInt(results.getString(1));
+//              results.close();
+//              stmt.close();
+//         } catch (SQLException e) {
+//              e.printStackTrace();
+//         }
+//         return numTests;
+//    }
     
-    /**
-     * Mutants
-     * @throws SQLException 
-     */
-    public synchronized void insertNumMutants(int num) throws SQLException {
-        insert("insert into available_mutants values (" + num + ")");
-    }
-    static int numTotalMutants = -1;
-    public int getNumTotalMutants() throws SQLException {
-         if (0 <= numTotalMutants) {
-              return numTotalMutants;
-         }
-         Statement stmt = getConnection().createStatement();
-         ResultSet results = stmt.executeQuery("select num from available_mutants");
-         numTotalMutants = 0;
-         while (results.next()) {
-              numTotalMutants += results.getInt(1);
-         }
-         results.close();
-         stmt.close();
-         return numTotalMutants;
-    }
+//    /**
+//     * Mutants
+//     * @throws SQLException 
+//     */
+//    public synchronized void insertNumMutants(int num) throws SQLException {
+//        insert("insert into available_mutants values (" + num + ")");
+//    }
+//    static int numTotalMutants = -1;
+//    public int getNumTotalMutants() throws SQLException {
+//         if (0 <= numTotalMutants) {
+//              return numTotalMutants;
+//         }
+//         Statement stmt = getConnection().createStatement();
+//         ResultSet results = stmt.executeQuery("select num from available_mutants");
+//         numTotalMutants = 0;
+//         while (results.next()) {
+//              numTotalMutants += results.getInt(1);
+//         }
+//         results.close();
+//         stmt.close();
+//         return numTotalMutants;
+//    }
 
     @Override
     public void output() {
@@ -162,6 +162,24 @@ public class Stats extends KnowledgeBase implements DataBase {
     		}
     		Long elapsed_time = end - start;
 			FileUtils.write(new File(Log.getLatestDir(), "elapsed_time.csv"),  elapsed_time.toString());
+			
+			{
+				StringBuilder builder = new StringBuilder();
+				Statement stmt = getConnection().createStatement();
+				ResultSet results = stmt.executeQuery("select time, key, value from stats");
+				while (results.next()) {
+					int time = (int) (results.getInt(1) - start);
+					String key = results.getString(2);
+					String value = results.getString(3);
+					builder.append(time).append(COMMA)
+						.append(key).append(COMMA)
+						.append(value).append(BR);
+				}
+				results.close();
+				stmt.close();
+				FileUtils.write(new File(Log.getLatestDir(), "stats.csv"), builder.toString());
+			}
+			
     	} catch (SQLException e) {
     		e.printStackTrace();
     	} catch (IOException e) {

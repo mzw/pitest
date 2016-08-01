@@ -1,51 +1,77 @@
 package jp.mzw.adamu.adaptation.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import jp.mzw.adamu.adaptation.knowledge.RtMS;
-import bb.mcmc.analysis.RafteryConvergeStat;
-import dr.math.distributions.NormalDistribution;
+import bb.mcmc.analysis.GewekeConvergeStat;
 
-public class ConvergeDiagnostic {
-	public static boolean converge(double[] data, int N) {
-		double _e = 0.005;
-		double _p = 0.95;
-		// Solve quartile
-		double min_mutation_rate = 0.2;
+public class ConvergeDiagnostic extends ModelBase {
+	
+
+	public static boolean converge(List<Double> values, int N) {
+		return converge(toDoubleArray(values), N);
+	}
+	public static boolean converge(double[] values, int N) {
+		// When sampling more than 50% of created mutants,
+		// AdaMu makes a decision as RtMS time series become converged by design
+		if (N * 0.5 < values.length) {
+			return true;
+		}
+		
+		// Determine sampling size for Geweke's convergence diagnostic
+		// according to the number of created mutants
+		int min_num_mutants = 100; // MIN_NUM_MUTANTS
 		if (10000 < N) {
-			min_mutation_rate = 0.1;
-		} else if (N < 1000) {
-			min_mutation_rate = 0.3;
+			min_num_mutants = 300; // 300
+		} else if (1000 < N) {
+			min_num_mutants = 200; // 200
+		} else {
+			min_num_mutants = 100; // 100
 		}
-		double nd = NormalDistribution.quantile(0.5 * (1 + _p), 0, 1);
-		double a = 1;
-		double b = -1;
-		double c = (N * min_mutation_rate) * Math.pow(_e / nd, 2);
-		double _q = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
-		if (Double.isNaN(_q) | _q == 0) {
+		
+		// Ignore early mutants that test cases do not cover
+		// because they are explicit biases causing invalid convergence diagnostic
+		List<Double> manipulated_values = new ArrayList<>();
+		boolean changed = false;
+		double init_value = values[0];
+		for (Double d : values) {
+			if (!changed && d.equals(new Double(init_value))) {
+				continue;
+			} else if (!d.equals(init_value)) {
+				changed = true;
+			}
+			manipulated_values.add(d);
+		}
+		// sampling
+		List<Double> sampled_values = new ArrayList<>();
+		int sample_sep = manipulated_values.size() / min_num_mutants;
+		if (sample_sep == 0) sample_sep = 1;
+		for (int i = 0; i < manipulated_values.size(); i++) {
+			if (i % sample_sep == 0) {
+				sampled_values.add(manipulated_values.get(i));
+			}
+		}
+		
+		// Converge diagnostic
+		try {
+			// Geweke's Nmin
+			if (sampled_values.size() < min_num_mutants) {
+				return false;
+			}
+			GewekeConvergeStat geweke = new GewekeConvergeStat();
+			final String var_name = "adamu";
+			geweke.setTestVariableName(new String[]{var_name});
+			HashMap<String, double[]> sample_values = new HashMap<>();
+			sample_values.put(var_name, toDoubleArray(sampled_values));
+			geweke.updateValues(sample_values);
+			geweke.calculateStatistic();
+			boolean converge = geweke.haveAllConverged();
+			return converge;
+		} catch (JSci.maths.statistics.OutOfRangeException e) {
+			e.printStackTrace();
 			return false;
 		}
-		// Diagnostic
-		RafteryConvergeStat raftery = new RafteryConvergeStat(_q, _e, _p, 0.001, 5);
-		if (data.length < raftery.getNMin()) {
-			return false;
-		}
-		final String var_name = "adamu";
-		raftery.setTestVariableName(new String[] { var_name });
-		HashMap<String, double[]> sample_values = new HashMap<>();
-		sample_values.put(var_name, data);
-		raftery.updateValues(sample_values);
-		raftery.calculateStatistic();
-		return raftery.haveAllConverged();
 	}
-
-	public static boolean converge(List<RtMS> rtmsList, int N) {
-		double[] data = new double[rtmsList.size()];
-		for (int i = 0; i < rtmsList.size(); i++) {
-			RtMS rtms = rtmsList.get(i);
-			data[i] = rtms.getScore();
-		}
-		return converge(data, N);
-	}
+	
 }
