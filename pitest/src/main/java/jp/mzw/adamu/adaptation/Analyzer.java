@@ -7,6 +7,7 @@ import java.util.List;
 import jp.mzw.adamu.adaptation.knowledge.KnowledgeBase;
 import jp.mzw.adamu.adaptation.knowledge.Mutations;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
+import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.data.Mutation;
 import jp.mzw.adamu.adaptation.knowledge.data.TestResult;
 import jp.mzw.adamu.adaptation.model.ConvergeDiagnostic;
@@ -77,6 +78,7 @@ public class Analyzer {
 				if (converge) {
 					burnin = false;
 					num_mutants_burnin = _num_examined_mutants;
+					Stats.getInstance().insert(Stats.Label.Burnin, num_mutants_burnin);
 				} else {
 					// Burn-in period
 				}
@@ -94,6 +96,7 @@ public class Analyzer {
 					if (stop_decision) {
 						stop = true;
 						num_mutants_stop = _num_examined_mutants;
+						Stats.getInstance().insert(Stats.Label.Quit, num_mutants_stop);
 					} else {
 						// Continue to measure for making stop decision
 					}

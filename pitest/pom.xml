@@ -356,44 +356,14 @@
         <!-- for blue-beast -->
         <!-- need to install "lib/beast.jar" into local Maven repository -->
         <dependency>
-            <groupId>dr.app</groupId>
-            <artifactId>beast</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
             <groupId>javastat</groupId>
             <artifactId>javastat</artifactId>
             <version>1.4.beta</version>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>BigDecimalMath</groupId>
-            <artifactId>BigDecimalMath</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>flanagan</groupId>
-            <artifactId>flanagan</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>11.0.2</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>jtransforms</groupId>
-            <artifactId>jtransforms</artifactId>
-            <version>2.4</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>ssj</groupId>
-            <artifactId>ssj</artifactId>
+            <groupId>dr.app</groupId>
+            <artifactId>beast</artifactId>
             <version>1.0</version>
             <type>jar</type>
         </dependency>

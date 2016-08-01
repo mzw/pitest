@@ -69,7 +69,10 @@ public class ConvergeDiagnostic extends ModelBase {
 			boolean converge = geweke.haveAllConverged();
 			return converge;
 		} catch (JSci.maths.statistics.OutOfRangeException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			return false;
+		} catch (java.lang.IllegalArgumentException e) {
+//			e.printStackTrace();
 			return false;
 		}
 	}
