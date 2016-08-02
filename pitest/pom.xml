@@ -353,28 +353,23 @@
 			<systemPath>${java.home}/../lib/tools.jar</systemPath>
 		</dependency>
 
-        <!-- for blue-beast -->
-        <!-- need to install "lib/beast.jar" into local Maven repository -->
-        <dependency>
-            <groupId>ca.umontreal.iro</groupId>
-            <artifactId>ssj</artifactId>
-            <version>2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>11.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>javastat</groupId>
-            <artifactId>javastat</artifactId>
-            <version>beta1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>jtransforms</groupId>
-            <artifactId>jtransforms</artifactId>
-            <version>2.4</version>
-        </dependency>
+		<!-- for blue-beast -->
+		<dependency>
+			<groupId>ca.umontreal.iro</groupId>
+			<artifactId>ssj</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rwl</groupId>
+			<artifactId>jtransforms</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>11.0.2</version>
+		</dependency>
+
 	</dependencies>
 
 </project>
