@@ -61,51 +61,46 @@ public class Executor {
 		public void run() {
 			while (true) {
 				try {
-					Thread.sleep(1000);
-					if (decideQuit()) {
-						// workaround: running PIT will quit with exception
-						List<Runnable> workers = executor.shutdownNow();
-						for (Runnable worker : workers) {
-							FutureTask<?> task = (FutureTask<?>) worker;
-							task.cancel(true);
-						}
-						if (!Stats.getInstance().getConnection().isClosed()) {
-							Executor.execute();
-						}
-						break;
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
+					// for completing mutation testing to evaluate usefulness of AdaMu
+					break;
+//					Thread.sleep(1000);
+//					Stats.Label label = decideQuit();
+//					if (label != null) {
+//						if (Stats.Label.Quit.equals(label)) {
+//							List<Runnable> workers = executor.shutdownNow();
+//							for (Runnable worker : workers) {
+//								FutureTask<?> task = (FutureTask<?>) worker;
+//								task.cancel(true);
+//							}
+//						}
+//						Executor.execute();
+//						break;
+//					}
+				} catch (Exception e) {
+					break;
 				}
 			}
 		}
 	}
 
-	public static boolean decideQuit() throws SQLException, InstantiationException, IllegalAccessException {
-		Connection conn = Stats.class.newInstance().getConnection();
-		if (conn.isClosed()) { // Finished
-			return true;
-		}
-		Statement stmt = conn.createStatement();
-		ResultSet results = stmt.executeQuery("select key from stats");
-		while (results.next()) {
-			String key = results.getString(1);
-			if (Stats.Label.Quit.name().equals(key) || Stats.Label.Finish.name().equals(key)) {
-				results.close();
-				stmt.close();
-				return true;
+	public static Stats.Label decideQuit() {
+		try {
+			Connection conn = Stats.class.newInstance().getConnection();
+			Statement stmt = conn.createStatement();
+			ResultSet results = stmt.executeQuery("select key from stats");
+			while (results.next()) {
+				String key = results.getString(1);
+				if (Stats.Label.Quit.name().equals(key) || Stats.Label.Finish.name().equals(key)) {
+					results.close();
+					stmt.close();
+					return Stats.Label.valueOf(key); 
+				}
 			}
+			results.close();
+			stmt.close();
+			return null;
+		} catch (Exception e) {
+			return null;
 		}
-		results.close();
-		stmt.close();
-		return false;
 	}
 }

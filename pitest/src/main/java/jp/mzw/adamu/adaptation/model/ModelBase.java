@@ -15,4 +15,15 @@ public class ModelBase {
 		return ret;
 	}
 
+	public static double[] toDoubleArray(Double[] array) {
+		if (array == null) {
+			return null;
+		}
+		double[] ret = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			ret[i] = array[i];
+		}
+		return ret;
+	}
+
 }
