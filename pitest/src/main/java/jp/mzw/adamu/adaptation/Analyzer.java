@@ -50,7 +50,6 @@ public class Analyzer {
 			}
 			double rtms = KnowledgeBase.getScore(_num_examined_mutants, _num_killed_mutants);
 			
-			
 			cur_rtms_list.add(rtms);
 
 			// already calculated
@@ -58,11 +57,13 @@ public class Analyzer {
 			if (0 < num_mutants_burnin && 0 < num_mutants_stop) {
 				if (_num_examined_mutants < num_mutants_burnin) {
 					burnin = true;
+					continue;
 				} else if (num_mutants_burnin <= _num_examined_mutants) {
 					burnin = false;
 					cur_useful_rtms_list.add(rtms);
 					if (_num_examined_mutants < num_mutants_stop) {
 						stop = false;
+						continue;
 					} else if (num_mutants_stop <= _num_examined_mutants) {
 						stop = true;
 					}
@@ -78,7 +79,6 @@ public class Analyzer {
 				if (converge) {
 					burnin = false;
 					num_mutants_burnin = _num_examined_mutants;
-					Stats.getInstance().insert(Stats.Label.Burnin, num_mutants_burnin);
 				} else {
 					// Burn-in period
 				}
@@ -96,7 +96,8 @@ public class Analyzer {
 					if (stop_decision) {
 						stop = true;
 						num_mutants_stop = _num_examined_mutants;
-						Stats.getInstance().insert(Stats.Label.Quit, num_mutants_stop);
+						// For completing mutation testing to evaluate usefulness of AdaMu
+//						Stats.getInstance().insert(Stats.Label.Quit, num_mutants_stop);
 					} else {
 						// Continue to measure for making stop decision
 					}
