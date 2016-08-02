@@ -356,6 +356,12 @@
         <!-- for blue-beast -->
         <!-- need to install "lib/beast.jar" into local Maven repository -->
         <dependency>
+            <groupId>javastat</groupId>
+            <artifactId>javastat</artifactId>
+            <version>1.4.beta</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>ssj</groupId>
             <artifactId>ssj</artifactId>
             <version>1.0</version>
