@@ -5,35 +5,12 @@ AdaMu is an implementation of adaptive mutation testing on top of PIT mutation t
 
 ### Install the 3rd party library for AdaMu
 ```
-mvn install:install-file \
-    -Dfile=lib/javastat_beta1.4.jar \
-    -DgroupId=javastat \
-    -DartifactId=javastat \
-    -Dversion=1.4.beta \
-    -Dpackaging=jar \
-    -DgeneratePom=true
-
+cd path/to/pitest/pitest
 
 mvn install:install-file \
-    -Dfile=lib/beast.jar \
-    -DgroupId=dr.app \
-    -DartifactId=beast \
-    -Dversion=1.0 \
-    -Dpackaging=jar \
-    -DgeneratePom=true
-
-mvn install:install-file \
-    -Dfile=lib/BigDecimalMath.jar \
-    -DgroupId=BigDecimalMath \
-    -DartifactId=BigDecimalMath \
-    -Dversion=1.0 \
-    -Dpackaging=jar \
-    -DgeneratePom=true
-
-mvn install:install-file \
-    -Dfile=lib/flanagan.jar \
-    -DgroupId=flanagan \
-    -DartifactId=flanagan \
+    -Dfile=lib/ssj.jar \
+    -DgroupId=ssj \
+    -DartifactId=ssj \
     -Dversion=1.0 \
     -Dpackaging=jar \
     -DgeneratePom=true
@@ -47,6 +24,14 @@ mvn install:install-file \
     -DgeneratePom=true
 
 mvn install:install-file \
+    -Dfile=lib/javastat_beta1.4.jar \
+    -DgroupId=javastat \
+    -DartifactId=javastat \
+    -Dversion=beta1.4 \
+    -Dpackaging=jar \
+    -DgeneratePom=true
+
+mvn install:install-file \
     -Dfile=lib/jtransforms-2.4.jar \
     -DgroupId=jtransforms \
     -DartifactId=jtransforms \
@@ -54,11 +39,4 @@ mvn install:install-file \
     -Dpackaging=jar \
     -DgeneratePom=true
 
-mvn install:install-file \
-    -Dfile=lib/ssj.jar \
-    -DgroupId=ssj \
-    -DartifactId=ssj \
-    -Dversion=1.0 \
-    -Dpackaging=jar \
-    -DgeneratePom=true
 ```

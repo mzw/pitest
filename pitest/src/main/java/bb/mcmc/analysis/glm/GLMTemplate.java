@@ -195,7 +195,8 @@ public abstract class GLMTemplate {
 					spec[i] = Math.log(response[i]);
 				}
 				// potentially a good starting point
-				coefficients = lm.coefficients(spec, covariate[1]);
+//				coefficients = lm.coefficients(spec, covariate[1]);
+				coefficients = lm.coefficients(spec, covariate);
 				
 				error = 1;
 
