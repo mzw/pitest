@@ -34,10 +34,6 @@ public class Stats extends KnowledgeBase implements DataBase {
     @Override
     public void init() throws SQLException {
         Statement stmt = getConnection().createStatement();
-//        stmt.executeUpdate("drop table if exists tests");
-//        stmt.executeUpdate("create table tests (num integer)");
-//        stmt.executeUpdate("drop table if exists available_mutants");
-//        stmt.executeUpdate("create table available_mutants (num integer)");
         stmt.executeUpdate("drop table if exists stats");
         stmt.executeUpdate("create table stats (time integer, key string, value string)");
         stmt.close();
@@ -78,7 +74,6 @@ public class Stats extends KnowledgeBase implements DataBase {
     
     public static enum Label {
          StartTime,
-//         AvailableMutations,
          Burnin,
          Suggest,
          Quit,
@@ -93,54 +88,33 @@ public class Stats extends KnowledgeBase implements DataBase {
         stmt.close();
         return start;
     }
-
-//    /**
-//     * Tests
-//     * @throws SQLException 
-//     */
-//    public synchronized void insertNumTests(int num) throws SQLException {
-//        insert("insert into tests values (" + num + ")");
-//    }
-//    static int numTests = -1;
-//    public int getNumTests() {
-//         if (0 <= numTests) {
-//              return numTests;
-//         }
-//         try {
-//              Statement stmt = getConnection().createStatement();
-//              ResultSet results = stmt.executeQuery("select num from tests");
-//              numTests = Integer.parseInt(results.getString(1));
-//              results.close();
-//              stmt.close();
-//         } catch (SQLException e) {
-//              e.printStackTrace();
-//         }
-//         return numTests;
-//    }
     
-//    /**
-//     * Mutants
-//     * @throws SQLException 
-//     */
-//    public synchronized void insertNumMutants(int num) throws SQLException {
-//        insert("insert into available_mutants values (" + num + ")");
-//    }
-//    static int numTotalMutants = -1;
-//    public int getNumTotalMutants() throws SQLException {
-//         if (0 <= numTotalMutants) {
-//              return numTotalMutants;
-//         }
-//         Statement stmt = getConnection().createStatement();
-//         ResultSet results = stmt.executeQuery("select num from available_mutants");
-//         numTotalMutants = 0;
-//         while (results.next()) {
-//              numTotalMutants += results.getInt(1);
-//         }
-//         results.close();
-//         stmt.close();
-//         return numTotalMutants;
-//    }
-
+    public int getNumMutantsBurnin() {
+    	try {
+	        Statement stmt = getConnection().createStatement();
+	        ResultSet results = stmt.executeQuery("select value from stats where key='" + Label.Burnin + "'");
+	        int ret = results.getInt(1);
+	        results.close();
+	        stmt.close();
+	        return ret;
+    	} catch (SQLException e) {
+        	return -1;
+        }
+    }
+    
+    public int getNumMutantsStop() {
+    	try {
+	        Statement stmt = getConnection().createStatement();
+	        ResultSet results = stmt.executeQuery("select value from stats where key='" + Label.Quit + "'");
+	        int ret = results.getInt(1);
+	        results.close();
+	        stmt.close();
+	        return ret;
+    	} catch (SQLException e) {
+        	return -1;
+        }
+    }
+    
     @Override
     public void output() {
     	try {

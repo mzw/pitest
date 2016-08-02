@@ -49,11 +49,7 @@ public class Planner {
             // Intentionally comment-out to complete mutation testing for evaluating usefulness of AdaMu
 //			try {
 //				Executor.decideQuit();
-//			} catch (InstantiationException e) {
-//				e.printStackTrace();
-//			} catch (IllegalAccessException e) {
-//				e.printStackTrace();
-//			} catch (SQLException e) {
+//			} catch (Exception e) {
 //				e.printStackTrace();
 //			}
 		}

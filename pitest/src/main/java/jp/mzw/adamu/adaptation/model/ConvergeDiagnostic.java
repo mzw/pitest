@@ -7,11 +7,25 @@ import java.util.List;
 import bb.mcmc.analysis.GewekeConvergeStat;
 
 public class ConvergeDiagnostic extends ModelBase {
+
+	public static final int DEFAULT_N_MIN = 200;
 	
+	public static int getNMin(int N) {
+		int min = DEFAULT_N_MIN;
+		if (10000 < N) {
+			min = 300;
+		} else if (1000 < N) {
+			min = 200;
+		} else if (N < 1000){
+			min = 100;
+		}
+		return min;
+	}
 
 	public static boolean converge(List<Double> values, int N) {
 		return converge(toDoubleArray(values), N);
 	}
+	
 	public static boolean converge(double[] values, int N) {
 		// When sampling more than 50% of created mutants,
 		// AdaMu makes a decision as RtMS time series become converged by design
@@ -21,14 +35,7 @@ public class ConvergeDiagnostic extends ModelBase {
 		
 		// Determine sampling size for Geweke's convergence diagnostic
 		// according to the number of created mutants
-		int min_num_mutants = 200; // MIN_NUM_MUTANTS
-//		if (10000 < N) {
-//			min_num_mutants = 300; // 300
-//		} else if (1000 < N) {
-//			min_num_mutants = 200; // 200
-//		} else {
-//			min_num_mutants = 100; // 100
-//		}
+		int min_num_mutants = getNMin(N);
 		
 		// Ignore early mutants that test cases do not cover
 		// because they are explicit biases causing invalid convergence diagnostic

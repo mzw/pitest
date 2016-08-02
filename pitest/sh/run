@@ -1,6 +1,6 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160802"
+S3_URI="s3://adamu/20160802_1"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
