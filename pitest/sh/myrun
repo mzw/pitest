@@ -1,6 +1,22 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160803"
+####################################################################################################
+# $ sh/myrun subject path/to/subject #loop rev s3 ec2
+#
+# subject        : ID representing subject
+# path/to/subject: absolute or relative path to subject root directory
+# #loop          : once if 0~9, otherwise each
+# rev (optional) : -cp subject:AdaMu if given (default: -cp AdaMu:subject)
+# s3  (optional) : upload results to S3 if given (note: edit "sh/s3.uri to change S3 destination")
+# ec2 (optional) : self-stop EC2 instance
+#
+# Ex.
+# $ sh/myrun cli ../../commons/commons-cli-1.2-src/ 10 s3
+# $ sh/myrun math3 ../../commons/commons-math3-3.4.1-src/ 4 rev s3 ec2
+####################################################################################################
+
+# S3_URI="s3://adamu/20160803"
+S3_URI=`cat sh/s3.uri`
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -20,16 +36,23 @@ if [ -f ${2}target/dependency/xercesImpl-2.4.0.jar ] && [ -f ${2}target/dependen
 fi
 ADAMU_CP="target/classes:target/test-classes:target/dependency/*"
 SUBJECT_CP="${2}target/classes:${2}target/test-classes:${2}target/dependency/*"
-ADAMU_CLASSPATH="${PRIORI_CP}:${ADAMU_CP}:${SUBJECT_CP}"
-# ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
 
-if [ "" != "${3}" ]; then
-	ADAMU_CLASSPATH="${ADAMU_CLASSPATH}:${3}"
+if [ "rev" = "${4}" ] || [ "rev" = "${5}" ] || [ "rev" = "${6}" ]; then
+	echo "@class-path: subject > AdaMu"
+	ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
+else
+	echo "@class-path: AdaMu > subject"
+	ADAMU_CLASSPATH="${PRIORI_CP}:${ADAMU_CP}:${SUBJECT_CP}"
+fi
+
+if [ ${3} -ge 0 ] && [ ${3} -le 9 ]; then
+	LOOP_NUM=${3}
+else
+	LOOP_NUM=(0 1 2 3 4 5 6 7 8 9)
 fi
 
 ## for randomness
-#for i in 0 1 2 3 4 5 6 7 8 9
-for i in 0
+for i in ${LOOP_NUM[@]}
 do
 
 if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
@@ -65,9 +88,15 @@ R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
 mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-# aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+if [ "s3" = "${4}" ] || [ "s3" = "${5}" ] || [ "s3" = "${6}" ]; then
+	echo "Copy results to S3"
+	aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+fi
 done
 
 # echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
 
-#sh/ec2-stop
+if [ "ec2" = "${4}" ] || [ "ec2" = "${5}" ] || [ "ec2" = "${6}" ]; then
+	echo "Stop EC2"
+	sh/ec2-stop
+fi
