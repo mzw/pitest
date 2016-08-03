@@ -79,7 +79,8 @@ ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
 if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
 	rm ${ADAMU_R_GRAPH_FILE}
 fi
-echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
+echo "setwd(\"${ADAMU_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
+echo "" >> ${ADAMU_R_GRAPH_FILE}
 cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
 R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
