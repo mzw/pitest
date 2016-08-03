@@ -17,6 +17,7 @@
 
 # S3_URI="s3://adamu/20160803"
 S3_URI=`cat sh/s3.uri`
+echo "S3_URI: ${S3_URI}"
 
 ## Copy maven dependencies if not exits
 ADAMU_PWD=$(pwd)
@@ -60,37 +61,39 @@ if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
 fi
 
 ## Run AdaMu
-/usr/bin/java \
-  -Xms6400m \
-  -cp ${ADAMU_CLASSPATH} \
-  -Djava.util.logging.config.file=target/classes/logging.properties \
-  jp.mzw.adamu.CLI run ${1}
+echo ${i}
+# /usr/bin/java \
+#   -Xms6400m \
+#   -cp ${ADAMU_CLASSPATH} \
+#   -Djava.util.logging.config.file=target/classes/logging.properties \
+#   jp.mzw.adamu.CLI run ${1}
 
 ## Copy results
 ADAMU_DIR="res/rawdata/latest/${1}"
-if [ -d ${ADAMU_DIR} ]; then
-	rm -r ${ADAMU_DIR}
-fi
-if [ -d ${ADAMU_DIR}_${i} ]; then
-	rm -r ${ADAMU_DIR}_${i}
-fi
-mkdir -p ${ADAMU_DIR}
-cp logs/latest/* ${ADAMU_DIR}
+# if [ -d ${ADAMU_DIR} ]; then
+# 	rm -r ${ADAMU_DIR}
+# fi
+# if [ -d ${ADAMU_DIR}_${i} ]; then
+# 	rm -r ${ADAMU_DIR}_${i}
+# fi
+# mkdir -p ${ADAMU_DIR}
+# cp logs/latest/* ${ADAMU_DIR}
 
 ## Run R to visualize results
-ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
-if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
-	rm ${ADAMU_R_GRAPH_FILE}
-fi
-echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
-cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
-R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
+# ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
+# if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
+# 	rm ${ADAMU_R_GRAPH_FILE}
+# fi
+# echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
+# cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
+# R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 ## for randomness
 mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
 if [ "s3" = "${4}" ] || [ "s3" = "${5}" ] || [ "s3" = "${6}" ]; then
 	echo "Copy results to S3"
-	aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+	# aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
+	echo "aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive"
 fi
 done
 
@@ -98,5 +101,5 @@ done
 
 if [ "ec2" = "${4}" ] || [ "ec2" = "${5}" ] || [ "ec2" = "${6}" ]; then
 	echo "Stop EC2"
-	sh/ec2-stop
+	# sh/ec2-stop
 fi
