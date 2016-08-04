@@ -31,10 +31,16 @@ public class Analyzer {
 	public static void analyze(List<TestResult> testResultList) throws SQLException {
 		List<Mutation> mutationList = Mutations.getInstance().getMutations();
 		int num_total_mutants = mutationList.size();
+		int num_examined_mutants = testResultList.size();
 
 		// for making faster
-		if (testResultList.size() < ConvergeDiagnostic.getNMin(num_total_mutants)) {
+		if (num_examined_mutants < ConvergeDiagnostic.getNMin(num_total_mutants)) {
 			logger.info("Burn-in period...");
+			return;
+		}
+		
+		if (skip(num_examined_mutants, num_total_mutants)) {
+			logger.info("Skip by interval design... #Examined: {}", num_examined_mutants);
 			return;
 		}
 		
@@ -125,12 +131,31 @@ public class Analyzer {
 		if (burnin) {
 			logger.info("Burn-in period...");
 		} else if (!stop) {
-			logger.info("Continue to measure for making stop decision...#B: {}", num_mutants_burnin);
+			logger.info("Continue to measure for making stop decision...#Burn-in: {}", num_mutants_burnin);
 		} else {
-			logger.info("Suggest for stopping mutation testing...#B: {} and #Q: {}", num_mutants_burnin, num_mutants_stop);
+			logger.info("Suggest for stopping mutation testing...#Burn-in: {} and #Quit: {}", num_mutants_burnin, num_mutants_stop);
 			Planner.plan(testResultList, mutationList);
 		}
 		
+	}
+	
+	/**
+	 * The percentage of the number of created mutants for skipping to call the analyze function
+	 */
+	public static final double SKIP_INTERVAL = 0.001; // 0.1%
+	
+	/**
+	 * Skip to call the analyze function for mitigating computational overhead
+	 * @param n the number fo examined mutants so far
+	 * @param N
+	 * @return
+	 */
+	public static boolean skip(int n, int N) {
+		int interval = (int) Math.ceil(N * SKIP_INTERVAL);
+		if (n % interval == 0) {
+			return false;
+		}
+		return true;
 	}
 	
 }
