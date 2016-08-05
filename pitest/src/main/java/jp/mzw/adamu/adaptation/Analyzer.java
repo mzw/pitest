@@ -142,7 +142,7 @@ public class Analyzer {
 	/**
 	 * The percentage of the number of created mutants for skipping to call the analyze function
 	 */
-	public static final double SKIP_INTERVAL = 0.001; // 0.1%
+	public static final double SKIP_INTERVAL = 0.005; // 0.5%
 	
 	/**
 	 * Skip to call the analyze function for mitigating computational overhead
