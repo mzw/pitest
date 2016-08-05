@@ -98,15 +98,13 @@ public class AdaMu {
         data.setTargetTests(Glob.toGlobPredicates(testClassList));
         data.setMutators(mutatorList);
         
-//        Stats.getInstance().insertNumTests(testClassList.size());
-        
         EntryPoint e = new EntryPoint();
         AnalysisResult result = e.execute(null, data, plugins, new HashMap<String, String>());
         
         Stats.getInstance().insert(Stats.Label.Finish, System.currentTimeMillis());
         Knowledge.output();
         Log.logPitReport(result);
-        Executor.execute();
+        Executor._finalize();
         
         // Send mail as notification
         Runtime.getRuntime().exec(new String[]{"/bin/sh", "mail", getSubjectId()}, null, new File("sh"));

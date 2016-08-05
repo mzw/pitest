@@ -17,24 +17,52 @@ public class Knowledge {
         Overhead.class.getName(),
     };
 
-    public static void initDataBases() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
+    public static void initDataBases() {
         for (String className : CLASS_NAMES) {
-            DataBase db = (DataBase) Class.forName(className).newInstance();
-            db.init();
+			try {
+	            DataBase db = (DataBase) Class.forName(className).newInstance();
+	            db.init();
+			} catch (InstantiationException e) {
+//				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+//				e.printStackTrace();
+			} catch (SQLException e) {
+//				e.printStackTrace();
+			}
         }
     }
     
-    public static void closeDataBases() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public static void closeDataBases() {
         for (String className : CLASS_NAMES) {
-            DataBase db = (DataBase) Class.forName(className).newInstance();
-            db.close();
+			try {
+				DataBase db = (DataBase) Class.forName(className).newInstance();
+	            db.close();
+			} catch (InstantiationException e) {
+//				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+//				e.printStackTrace();
+			} catch (SQLException e) {
+//				e.printStackTrace();
+			}
         }
     }
     
-    public static void output() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public static void output() {
         for (String className : CLASS_NAMES) {
-            KnowledgeBase k = (KnowledgeBase) Class.forName(className).newInstance();
-            k.output();
+        	try {
+	            KnowledgeBase k = (KnowledgeBase) Class.forName(className).newInstance();
+	            k.output();
+			} catch (InstantiationException e) {
+//				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+//				e.printStackTrace();
+			}
         }
     }
     
