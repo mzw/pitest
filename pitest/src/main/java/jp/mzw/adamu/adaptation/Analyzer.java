@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.mzw.adamu.adaptation.knowledge.KnowledgeBase;
-import jp.mzw.adamu.adaptation.knowledge.Mutations;
 import jp.mzw.adamu.adaptation.knowledge.Overhead;
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.data.Mutation;
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Yuta Maezawa
  */
-public class Analyzer {
+public class Analyzer extends MAPE {
 	static Logger logger = LoggerFactory.getLogger(Analyzer.class);
 
 	private static int num_mutants_burnin = -1;
@@ -30,8 +29,7 @@ public class Analyzer {
 	 * @param testResultList
 	 * @throws SQLException
 	 */
-	public static void analyze(List<TestResult> testResultList) throws SQLException {
-		List<Mutation> mutationList = Mutations.getInstance().getMutations();
+	public static void analyze(List<TestResult> testResultList, List<Mutation> mutationList) throws SQLException {
 		int num_total_mutants = mutationList.size();
 		int num_examined_mutants = testResultList.size();
 		
@@ -46,11 +44,11 @@ public class Analyzer {
 		
 		// for making faster
 		if (skip(num_examined_mutants, num_total_mutants)) {
-			logger.info("Skip by interval design... #Examined: {}", num_examined_mutants);
+//			logger.info("Skip by interval design... #Examined: {}", num_examined_mutants);
 			return;
 		}
 		if (num_examined_mutants < ConvergeDiagnostic.getNMin(num_total_mutants)) {
-			logger.info("Burn-in period...");
+//			logger.info("Burn-in period...");
 			return;
 		}
 		
@@ -81,25 +79,6 @@ public class Analyzer {
 			}
 		}
 		
-	}
-	
-	/**
-	 * The percentage of the number of created mutants for skipping to call the analyze function
-	 */
-	public static final double SKIP_INTERVAL = 0.01; // 1%
-	
-	/**
-	 * Skip to call the analyze function for mitigating computational overhead
-	 * @param n the number fo examined mutants so far
-	 * @param N
-	 * @return
-	 */
-	public static boolean skip(int n, int N) {
-		int interval = (int) Math.ceil(N * SKIP_INTERVAL);
-		if (n % interval == 0) {
-			return false;
-		}
-		return true;
 	}
 	
 }

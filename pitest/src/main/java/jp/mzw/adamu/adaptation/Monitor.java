@@ -18,6 +18,7 @@ import jp.mzw.adamu.adaptation.knowledge.Overhead;
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.RtMS;
 import jp.mzw.adamu.adaptation.knowledge.TestResults;
+import jp.mzw.adamu.adaptation.knowledge.data.Mutation;
 import jp.mzw.adamu.adaptation.knowledge.data.TestResult;
 
 import org.pitest.classinfo.ClassName;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Yuta Maezawa
  */
-public class Monitor {
+public class Monitor extends MAPE {
 	static Logger logger = LoggerFactory.getLogger(Monitor.class);
 
 	/**
@@ -125,7 +126,7 @@ public class Monitor {
 	 * @param mutation a mutants created by PIT
 	 * @param status a test execution result on a mutant
 	 */
-	public static void monitorMutationResult(MutationDetails mutation, DetectionStatus status) {
+	public static void monitorMutationResult(MutationDetails mutation, DetectionStatus status, boolean run) {
 		if (!status.equals(DetectionStatus.NOT_STARTED) && !status.equals(DetectionStatus.STARTED)) {
 			TestResults.getInstance().insert(
 					mutation.hashCode(),
@@ -135,12 +136,13 @@ public class Monitor {
 					mutation.getMutator(),
 					status.toString()
 				);
-			try {
-				measureRuntimeMutationScore();
-			} catch (SQLException e) {
-				e.printStackTrace();
+			if (run) {
+				new MonitorThread().run();
 			}
 		}
+	}
+	public static void monitorMutationResult(MutationDetails mutation, DetectionStatus status) {
+		monitorMutationResult(mutation, status, true);
 	}
 
 	/**
@@ -150,7 +152,18 @@ public class Monitor {
 	 */
 	public static void monitorMutationsResult(Collection<MutationDetails> mutations, DetectionStatus status) {
 		for (MutationDetails mutation : mutations) {
-			monitorMutationResult(mutation, status);
+			monitorMutationResult(mutation, status, true);
+		}
+	}
+
+	public static class MonitorThread extends Thread {
+		@Override
+		public void run() {
+			try {
+				measureRuntimeMutationScore();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -188,7 +201,15 @@ public class Monitor {
 		double rtms = RtMS.getInstance().insert(numExaminedMutants, numKilledMutants);
 		logger.info("Runtime mutation score: {} @ {}", rtms, numExaminedMutants);
 		// Analyzer
-		Analyzer.analyze(test_result_list);
+		Analyzer.analyze(test_result_list, getMutationList());
+	}
+	
+	protected static List<Mutation> mutationList = null;
+	public static List<Mutation> getMutationList() throws SQLException {
+		if (mutationList == null) {
+			mutationList = Mutations.getInstance().getMutations();
+		}
+		return mutationList;
 	}
 
 }

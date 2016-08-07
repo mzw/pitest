@@ -28,7 +28,7 @@ import jp.mzw.adamu.adaptation.knowledge.data.TestResult;
  * 
  * @author Yuta Maezawa
  */
-public class Executor {
+public class Executor extends MAPE {
 	static Logger logger = LoggerFactory.getLogger(Executor.class);
 
 	/**
@@ -37,28 +37,48 @@ public class Executor {
 	 * @throws SQLException
 	 */
 	public static void execute(List<TestResult> testResultList, List<Mutation> mutationList) throws SQLException {
-
-		long start = System.currentTimeMillis();
+		int num_total_mutants = mutationList.size();
+		int num_examined_mutants = testResultList.size();
+		
+		// for making faster
+		if (skip(num_examined_mutants, num_total_mutants)) {
+//			logger.info("Skip by interval design... #Examined: {}", num_examined_mutants);
+			return;
+		}
 
 		// forecast
+		long start = System.currentTimeMillis();
 		double ams = forecastAms(testResultList, mutationList);
-		// validate
-		int num_examined_mutants = testResultList.size();
-		int num_killed_mutants = getNumKilledMutants(testResultList);
-		int num_total_mutants = mutationList.size();
-		boolean valid = isValid(ams, num_examined_mutants, num_killed_mutants, num_total_mutants);
-
+		boolean consumed = consumed(testResultList, mutationList, ams);
+		AMS.getInstance().insert(num_examined_mutants, ams);
+		logger.info("Approximate mutation score: {} @ {}", ams, num_examined_mutants);
 		long end = System.currentTimeMillis();
 		Overhead.getInstance().insert(Overhead.Type.Forecast, end - start);
 
-		if (valid) {
-			AMS.getInstance().insert(num_examined_mutants, ams);
-			logger.info("Approximate mutation score: {} @ {}", ams, num_examined_mutants);
-
+		if (consumed) {
 			// Intentionally comment-out for completing mutation testing to evaluate usefulness of AdaMu
 //			_finalize();
 		}
 		
+	}
+	
+	/**
+	 * Here AdaMu users describe to validate whether their limited computational resources are consumed or not
+	 * @param testResultList
+	 * @param mutationList
+	 * @param ams
+	 * @return true if consumed, otherwise false
+	 */
+	public static boolean consumed(List<TestResult> testResultList, List<Mutation> mutationList, double ams) {
+		boolean consumed = false;
+
+		// For exampled AMS validation
+		int num_total_mutants = mutationList.size();
+		int num_examined_mutants = testResultList.size();
+		int num_killed_mutants = getNumKilledMutants(testResultList);
+		consumed = consumed && isValid(ams, num_examined_mutants, num_killed_mutants, num_total_mutants);
+		
+		return consumed;
 	}
 
 	/**

@@ -18,7 +18,7 @@ import jp.mzw.adamu.adaptation.model.StoppingRule;
  * Plan function of MAPE-K control loop implemented in AdaMu
  * @author Yuta Maezawa
  */
-public class Planner {
+public class Planner extends MAPE {
     static Logger logger = LoggerFactory.getLogger(Planner.class);
 
 	private static int num_mutants_stop = -1;
@@ -30,9 +30,22 @@ public class Planner {
      * @throws SQLException is caused when AdaMu fails to store forecasting overhead into DB
      */
     public static void plan(List<TestResult> testResultList, List<Mutation> mutationList, int numMutantsBurnin) throws SQLException {
+		int num_total_mutants = mutationList.size();
+		int num_examined_mutants = testResultList.size();
 
+		// Already suggesting quit timing
 		if (num_mutants_stop < 0) {
 			num_mutants_stop = Stats.getInstance().getNumMutantsStop();
+		}
+		if (0 < num_mutants_stop && num_mutants_stop <= num_examined_mutants) {
+			Executor.execute(testResultList, mutationList);
+			return;
+		}
+		
+		// for making faster
+		if (skip(num_examined_mutants, num_total_mutants)) {
+//			logger.info("Skip by interval design... #Examined: {}", num_examined_mutants);
+			return;
 		}
 
 		int _num_examined_mutants = 0;
