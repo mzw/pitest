@@ -5,11 +5,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import jp.mzw.adamu.adaptation.knowledge.KnowledgeBase;
@@ -66,42 +63,12 @@ public class Monitor extends MAPE {
 	 */
 	public static List<MutationAnalysisUnit> orderTestExecutionOnMutants(final Collection<ClassName> codeClasses, final Collection<MutationDetails> mutations,
 			final MutationGrouper grouper, WorkerFactory workerFactory) {
+		
 		long start = System.currentTimeMillis();
 		List<MutationAnalysisUnit> ret = new ArrayList<MutationAnalysisUnit>();
-
-		Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
-		for (MutationDetails mutation : mutations) {
-			String methodName = mutation.getClassName() + "#" + mutation.getMethod();
-			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-			if (mutation_list == null) {
-				mutation_list = new ArrayList<>();
-			}
-			mutation_list.add(mutation);
-			method_mutation_map.put(methodName, mutation_list);
+		for (final Collection<MutationDetails> ms : grouper.groupMutations(codeClasses, mutations)) {
+			ret.add(makeUnanalysedUnit(ms, workerFactory));
 		}
-		for (String methodName : method_mutation_map.keySet()) {
-			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-			Collections.shuffle(mutation_list);
-		}
-		boolean remain = true;
-		do {
-			Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
-			remain = false;
-			for (String methodName : method_mutation_map.keySet()) {
-				List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-				if (0 < mutation_list.size()) {
-					MutationDetails mutation = mutation_list.remove(0);
-					method_based_mutation_list.add(mutation);
-				}
-				if (!mutation_list.isEmpty()) {
-					remain = true;
-				}
-			}
-			final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-			FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
-			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory);
-			ret.add(mtu);
-		} while (remain);
 		long end = System.currentTimeMillis();
 		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);
 		
@@ -119,6 +86,12 @@ public class Monitor extends MAPE {
 		}
 
 		return ret;
+	}
+	
+	private static MutationAnalysisUnit makeUnanalysedUnit(final Collection<MutationDetails> needAnalysis, WorkerFactory workerFactory) {
+		final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+		FCollection.flatMapTo(needAnalysis, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
+		return new MutationTestUnit(needAnalysis, uniqueTestClasses, workerFactory);
 	}
 	
 	/**
