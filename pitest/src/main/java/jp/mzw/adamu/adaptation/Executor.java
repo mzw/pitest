@@ -157,11 +157,15 @@ public class Executor extends MAPE {
 
 				int num_corr_killed_mutants = 0;
 				int num_corr_examined_mutants = 0;
-				for (TestResult test_result : corr_examined_mutants) {
-					num_corr_examined_mutants++;
-					if (KnowledgeBase.isKilled(test_result.getStatus())) {
-						num_corr_killed_mutants++;
+				if (corr_examined_mutants != null) {	
+					for (TestResult test_result : corr_examined_mutants) {
+						num_corr_examined_mutants++;
+						if (KnowledgeBase.isKilled(test_result.getStatus())) {
+							num_corr_killed_mutants++;
+						}
 					}
+				} else {
+					num_corr_examined_mutants = 1;
 				}
 				double forecasted_score = (double) num_corr_killed_mutants / (double) (num_corr_examined_mutants);
 				num_killed_mutants += 1.0 * forecasted_score;
