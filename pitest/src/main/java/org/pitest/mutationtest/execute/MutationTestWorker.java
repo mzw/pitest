@@ -106,7 +106,9 @@ public class MutationTestWorker {
     final MutationStatusTestPair mutationDetected = handleMutation(
         mutationDetails, mutatedClass, relevantTests);
     
-    jp.mzw.adamu.adaptation.Monitor.monitorMutationResult(mutationDetails, mutationDetected.getStatus());
+    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+    	    jp.mzw.adamu.adaptation.Monitor.monitorMutationResult(mutationDetails, mutationDetected.getStatus());
+    }
 
     r.report(mutationId, mutationDetected);
     if (DEBUG) {

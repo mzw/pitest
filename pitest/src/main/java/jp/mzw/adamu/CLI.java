@@ -1,12 +1,12 @@
 package jp.mzw.adamu;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.core.AdaMu;
-import jp.mzw.adamu.core.ConfigMaker;
 
 /**
  * Command-Line Interface
@@ -24,9 +24,6 @@ public class CLI {
           if ("run".equals(command)) {
                String[] rargs = Arrays.copyOfRange(args, 1, args.length);
                CLI.run(rargs);
-          } else if ("gen".equals(command)) {
-               String[] rargs = Arrays.copyOfRange(args, 1, args.length);
-               CLI.gen(rargs);
           } else if ("quit".equals(command)) {
                String[] rargs = Arrays.copyOfRange(args, 1, args.length);
                CLI.quit(rargs);
@@ -34,28 +31,17 @@ public class CLI {
      }
      
      private static void run(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-          if (args.length != 1) {
-               System.err.println("jp.mzw.adamu.CLI run <subject id>");
+          if (args.length < 2) {
+               System.err.println("jp.mzw.adamu.CLI run <path to subject directory> <mutation operator set> <(optional) enabled>");
                System.exit(-1);
           }
-          String subjectId = args[0];
-          
-          new AdaMu(subjectId).run();
+          boolean enabled = args.length == 2 ? true : args[2].equals("disabled") ? false : true;
+          AdaMu adamu = new AdaMu(new File(args[0]), AdaMu.MutationOperatorSet.valueOf(args[1].toUpperCase()), enabled);
+          adamu.run();
      }
      
      private static void quit(String[] args) throws ClassNotFoundException, SQLException {
           Class.forName("org.sqlite.JDBC");
           Stats.getInstance().insert(Stats.Label.Quit, System.currentTimeMillis());
-     }
-     
-     private static void gen(String[] args) throws IOException {
-          if (args.length != 2) {
-               System.err.println("jp.mzw.adamu.CLI gen <subject id> <subject root dir>");
-               System.exit(-1);
-          }
-          String subjectId = args[0];
-          String subjectRootDir = args[1];
-          
-          ConfigMaker.makeConfigFiles(subjectId, subjectRootDir);
      }
 }

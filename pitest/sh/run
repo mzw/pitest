@@ -1,73 +1,71 @@
 #!/bin/sh
 
-S3_URI="s3://adamu/20160803"
+PATH_TO_APACHE_COMMONS_DIR=/Users/yuta/workspace/apache-commons/
 
-## Copy maven dependencies if not exits
-ADAMU_PWD=$(pwd)
-ADAMU_SUBJECT_DEPENDENCY_DIR="${2}target/dependency"
-if [ -e ${ADAMU_SUBJECT_DEPENDENCY_DIR} ]; then
-	echo "Found dependencies on subject test project"
+if [ ${#} -le 1 ] || [ ${#} -gt 3 ]; then
+	echo "command [subject] [set of mutation operators] [(optional) disabled]"
+	exit
+fi
+
+# Subject
+if [ ${1} = "cli" ]; then
+	subject=commons-cli
+elif [ ${1} = "math" ]; then
+	subject=commons-math
 else
-	cd ${2}
-	mvn dependency:copy-dependencies
-	cd ${ADAMU_PWD}
+	echo "Give valid target, e.g., 'cli'"
+	exit
+fi
+PATH_TO_SUBJECT_DIR="${PATH_TO_APACHE_COMMONS_DIR}${subject}"
+## Compile subject
+cd ${PATH_TO_SUBJECT_DIR}
+if [ -e ${PATH_TO_SUBJECT_DIR}/target/classes ] && [ -e ${PATH_TO_SUBJECT_DIR}/target/test-classes ] && [ -e ${PATH_TO_SUBJECT_DIR}/target/dependency ]; then
+	echo "Already compiled: ${subject}"
+else
+	mvn compile test-compile dependency:copy-dependencies
+fi
+## Go back to AdaMu directory
+cd - > /dev/null
+if [ -e target/classes ] && [ -e target/test-classes ] && [ -e target/dependency ]; then
+	echo "Already compiled: AdaMu"
+else
+	mvn compile test-compile dependency:copy-dependencies
 fi
 
-## Create class path
-PRIORI_CP=""
-if [ -f ${2}target/dependency/xercesImpl-2.4.0.jar ] && [ -f ${2}target/dependency/xml-apis-1.3.04.jar ]; then
-	PRIORI_CP="${2}target/dependency/xercesImpl-2.4.0.jar:${2}target/dependency/xml-apis-1.3.04.jar"
-fi
-ADAMU_CP="target/classes:target/test-classes:target/dependency/*"
-SUBJECT_CP="${2}target/classes:${2}target/test-classes:${2}target/dependency/*"
-ADAMU_CLASSPATH="${PRIORI_CP}:${ADAMU_CP}:${SUBJECT_CP}"
-# ADAMU_CLASSPATH="${SUBJECT_CP}:${ADAMU_CP}"
-
-if [ "" != "${3}" ]; then
-	ADAMU_CLASSPATH="${ADAMU_CLASSPATH}:${3}"
+# Set of mutation operators
+if [ ${2} = "defaults" ]; then
+	op="defaults"
+elif [ ${2} = "stronger" ]; then
+	op="stronger"
+elif [ ${2} = "all" ]; then
+	op="all"
+else
+	echo "Give valid set of mutation operators (default, stronger, or all)"
+	exit
 fi
 
-## for randomness
-#for i in 0 1 2 3 4 5 6 7 8 9
-for i in 0
-do
-
-if [ -e /tmp/testAboveThresholdSpecifiedRepository/ ]; then
-  rm -r /tmp/testAboveThresholdSpecifiedRepository/
+## Enable AdaMu
+if [ ${#} -gt 2 ]; then
+	enalbed=${3}
 fi
 
+
+# AdaMu
+# php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+## Configure class path
+cp="$(pwd)/target/classes"
+cp="${cp}:$(pwd)/target/test-classes"
+cp="${cp}:$(pwd)/target/dependency/*"
+cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/classes"
+cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
+cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
+## Run at subject directory due to relative file path problem
+cd ${PATH_TO_SUBJECT_DIR}
 ## Run AdaMu
 /usr/bin/java \
-  -Xms6400m \
-  -cp ${ADAMU_CLASSPATH} \
-  -Djava.util.logging.config.file=target/classes/logging.properties \
-  jp.mzw.adamu.CLI run ${1}
-
-## Copy results
-ADAMU_DIR="res/rawdata/latest/${1}"
-if [ -d ${ADAMU_DIR} ]; then
-	rm -r ${ADAMU_DIR}
-fi
-if [ -d ${ADAMU_DIR}_${i} ]; then
-	rm -r ${ADAMU_DIR}_${i}
-fi
-mkdir -p ${ADAMU_DIR}
-cp logs/latest/* ${ADAMU_DIR}
-
-## Run R to visualize results
-ADAMU_R_GRAPH_FILE="res/rawdata/latest/${1}/graph.R"
-if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
-	rm ${ADAMU_R_GRAPH_FILE}
-fi
-echo "setwd(\"${ADAMU_DIR}/\")\n" >> ${ADAMU_R_GRAPH_FILE}
-cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
-R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
-
-## for randomness
-mv ${ADAMU_DIR} ${ADAMU_DIR}_${i}
-# aws s3 cp ${ADAMU_DIR}_${i} ${S3_URI}/${1}_${i} --recursive
-done
-
-# echo "All finished: ${1}" | /usr/sbin/sendmail yuta@mzw.jp
-
-#sh/ec2-stop
+	-Xms6400m \
+	-cp ${cp} \
+	-Djava.util.logging.config.file=target/classes/logging.properties \
+	jp.mzw.adamu.CLI run ${PATH_TO_SUBJECT_DIR} ${op} ${enalbed}
+## Go back to AdaMu directory
+cd - > /dev/null

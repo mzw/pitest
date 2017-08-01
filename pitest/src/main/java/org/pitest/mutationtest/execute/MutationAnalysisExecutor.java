@@ -45,7 +45,9 @@ public class MutationAnalysisExecutor {
     List<Future<MutationMetaData>> results = new ArrayList<Future<MutationMetaData>>(
         testUnits.size());
     
-    new jp.mzw.adamu.adaptation.Executor.Interrupter(this.executor).start();
+    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+        new jp.mzw.adamu.adaptation.Executor.Interrupter(this.executor).start();
+    }
 
     for (final MutationAnalysisUnit unit : testUnits) {
       results.add(this.executor.submit(unit));

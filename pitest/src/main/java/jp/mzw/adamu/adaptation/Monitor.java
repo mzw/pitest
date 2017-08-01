@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
  * @author Yuta Maezawa
  */
 public class Monitor extends MAPE {
-	static Logger logger = LoggerFactory.getLogger(Monitor.class);
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
+	
 	/**
 	 * Store a Unix time when PIT starts mutation testing
 	 * @throws SQLException is caused when AdaMu fails to store a Unix time into DB
@@ -49,7 +49,7 @@ public class Monitor extends MAPE {
 		try {
 			long time = System.currentTimeMillis();
 			Stats.getInstance().insert(Stats.Label.StartTime, time);
-			logger.info("Start: {}", time);
+			LOGGER.info("Start: {}", time);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -199,7 +199,7 @@ public class Monitor extends MAPE {
 		}
 		// RtMS
 		double rtms = RtMS.getInstance().insert(numExaminedMutants, numKilledMutants);
-		logger.info("Runtime mutation score: {} @ {}", rtms, numExaminedMutants);
+		LOGGER.info("Runtime mutation score: {} @ {}", rtms, numExaminedMutants);
 		// Analyzer
 		Analyzer.analyze(test_result_list, getMutationList());
 	}

@@ -72,11 +72,13 @@ public class MutationTestBuilder {
     }
 
     if (!needAnalysis.isEmpty()) {
-//        for (final Collection<MutationDetails> ms : this.grouper.groupMutations(
-//                codeClasses, needAnalysis)) {
-//				tus.add(makeUnanalysedUnit(ms));
-//        }
-    	tus.addAll(jp.mzw.adamu.adaptation.Monitor.orderTestExecutionOnMutants(codeClasses, needAnalysis, this.grouper, this.workerFactory));
+    	    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+    	        tus.addAll(jp.mzw.adamu.adaptation.Monitor.orderTestExecutionOnMutants(codeClasses, needAnalysis, this.grouper, this.workerFactory));
+    	    } else {
+    	        for (final Collection<MutationDetails> ms : this.grouper.groupMutations(codeClasses, needAnalysis)) {
+                tus.add(makeUnanalysedUnit(ms));
+    	        }
+    		}
     }
     Collections.sort(tus, new AnalysisPriorityComparator());
     
