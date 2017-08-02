@@ -26,17 +26,21 @@ public class WorkerFactory {
   private final TimeoutLengthStrategy timeoutStrategy;
   private final boolean               verbose;
   private final MutationConfig        config;
+  
+  private final boolean enableAdamu;
 
   public WorkerFactory(final File baseDir, final Configuration pitConfig,
       final MutationConfig mutationConfig,
       final TimeoutLengthStrategy timeoutStrategy, final boolean verbose,
-      final String classPath) {
+      final String classPath,
+      final boolean enableAdamu) {
     this.pitConfig = pitConfig;
     this.timeoutStrategy = timeoutStrategy;
     this.verbose = verbose;
     this.classPath = classPath;
     this.baseDir = baseDir;
     this.config = mutationConfig;
+    this.enableAdamu = enableAdamu;
   }
 
   public MutationTestProcess createWorker(
@@ -53,7 +57,7 @@ public class WorkerFactory {
 
     final SocketFinder sf = new SocketFinder();
     final MutationTestProcess worker = new MutationTestProcess(
-        sf.getNextAvailableServerSocket(), args, fileArgs);
+        sf.getNextAvailableServerSocket(), args, fileArgs, this.enableAdamu);
     return worker;
   }
 

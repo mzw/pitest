@@ -52,11 +52,15 @@ public class MutationTestMinion {
 
   private final SafeDataInputStream dis;
   private final Reporter            reporter;
+  
+  private final boolean enableAdamu;
 
   public MutationTestMinion(final SafeDataInputStream dis,
-      final Reporter reporter) {
+      final Reporter reporter,
+      final boolean enableAdamu) {
     this.dis = dis;
     this.reporter = reporter;
+    this.enableAdamu = enableAdamu;
   }
 
   public void run() {
@@ -76,7 +80,7 @@ public class MutationTestMinion {
           byteSource);
 
       final MutationTestWorker worker = new MutationTestWorker(hotswap,
-          paramsFromParent.engine.createMutator(byteSource), loader);
+          paramsFromParent.engine.createMutator(byteSource), loader, this.enableAdamu);
 
       final List<TestUnit> tests = findTestsForTestClasses(loader,
           paramsFromParent.testClasses, paramsFromParent.pitConfig);
@@ -99,6 +103,7 @@ public class MutationTestMinion {
     enablePowerMockSupport();
 
     final int port = Integer.valueOf(args[0]);
+    final boolean enableAdamu = Boolean.parseBoolean(args[1]);
 
     Socket s = null;
     try {
@@ -109,7 +114,7 @@ public class MutationTestMinion {
       final Reporter reporter = new DefaultReporter(s.getOutputStream());
       addMemoryWatchDog(reporter);
 
-      final MutationTestMinion instance = new MutationTestMinion(dis, reporter);
+      final MutationTestMinion instance = new MutationTestMinion(dis, reporter, enableAdamu);
       instance.run();
     } catch (final UnknownHostException ex) {
       LOG.log(Level.WARNING, "Error during mutation test", ex);

@@ -381,15 +381,15 @@ public class TestMutationTesting {
         coverageOptions.getPitConfig(), mutationConfig,
         new PercentAndConstantTimeoutStrategy(data.getTimeoutFactor(),
             data.getTimeoutConstant()), data.isVerbose(), data.getClassPath()
-            .getLocalClassPath());
+            .getLocalClassPath(), data.enableAdamu());
 
     final MutationTestBuilder builder = new MutationTestBuilder(wf,
-        new NullAnalyser(), source, new DefaultGrouper(0));
+        new NullAnalyser(), source, new DefaultGrouper(0), data.enableAdamu());
 
     final List<MutationAnalysisUnit> tus = builder
         .createMutationTestUnits(codeClasses);
 
-    this.mae.run(tus);
+    this.mae.run(tus, data.enableAdamu());
   }
 
   private CoverageOptions createCoverageOptions(ReportOptions data) {

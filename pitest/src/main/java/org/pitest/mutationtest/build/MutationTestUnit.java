@@ -36,16 +36,20 @@ public class MutationTestUnit implements MutationAnalysisUnit {
 
   private final Collection<ClassName>       testClasses;
 
+  private final boolean enableAdamu;
+  
   public MutationTestUnit(final Collection<MutationDetails> availableMutations,
-      final Collection<ClassName> testClasses, final WorkerFactory workerFactor) {
+      final Collection<ClassName> testClasses, final WorkerFactory workerFactor,
+      final boolean enableAdamu) {
     this.availableMutations = availableMutations;
     this.testClasses = testClasses;
     this.workerFactory = workerFactor;
+    this.enableAdamu = enableAdamu;
   }
 
   @Override
   public MutationMetaData call() throws Exception {
-    final MutationStatusMap mutations = new MutationStatusMap();
+    final MutationStatusMap mutations = new MutationStatusMap(this.enableAdamu);
 
     mutations.setStatusForMutations(this.availableMutations,
         DetectionStatus.NOT_STARTED);

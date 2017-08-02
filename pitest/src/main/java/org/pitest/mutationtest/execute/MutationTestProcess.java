@@ -18,9 +18,9 @@ public class MutationTestProcess {
   private final MutationTestCommunicationThread thread;
 
   public MutationTestProcess(final ServerSocket socket,
-      final ProcessArgs processArgs, final MinionArguments arguments) {
+      final ProcessArgs processArgs, final MinionArguments arguments, final boolean enableAdamu) {
     this.process = new WrappingProcess(socket.getLocalPort(), processArgs,
-        MutationTestMinion.class);
+        MutationTestMinion.class, enableAdamu);
     this.thread = new MutationTestCommunicationThread(socket, arguments,
         new HashMap<MutationIdentifier, MutationStatusTestPair>());
 

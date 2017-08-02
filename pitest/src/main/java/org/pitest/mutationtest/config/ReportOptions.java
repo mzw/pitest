@@ -121,6 +121,16 @@ public class ReportOptions {
   private boolean                        includeLaunchClasspath         = true;
 
   private Properties                     properties;
+  
+  private boolean                        enableAdamu                     = true;
+  
+  public boolean enableAdamu() {
+	  return this.enableAdamu;
+  }
+  
+  public void setAdamuEnabled(final boolean enabled) {
+	  this.enableAdamu = enabled;
+  }
 
   public boolean isVerbose() {
     return this.verbose;

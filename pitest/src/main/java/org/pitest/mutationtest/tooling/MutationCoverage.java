@@ -145,7 +145,7 @@ public class MutationCoverage {
     final MutationAnalysisExecutor mae = new MutationAnalysisExecutor(
         numberOfThreads(), config);
     this.timings.registerStart(Timings.Stage.RUN_MUTATION_TESTS);
-    mae.run(tus);
+    mae.run(tus, this.data.enableAdamu());
     this.timings.registerEnd(Timings.Stage.RUN_MUTATION_TESTS);
 
     LOG.info("Completed in " + timeSpan(t0));
@@ -251,13 +251,13 @@ public class MutationCoverage {
         .getConfiguration(), mutationConfig,
         new PercentAndConstantTimeoutStrategy(this.data.getTimeoutFactor(),
             this.data.getTimeoutConstant()), this.data.isVerbose(), this.data
-            .getClassPath().getLocalClassPath());
+            .getClassPath().getLocalClassPath(), this.data.enableAdamu());
 
     MutationGrouper grouper = this.settings.getMutationGrouper().makeFactory(
         this.data.getFreeFormProperties(), this.code,
         this.data.getNumberOfThreads(), this.data.getMutationUnitSize());
     final MutationTestBuilder builder = new MutationTestBuilder(wf, analyser,
-        source, grouper);
+        source, grouper, this.data.enableAdamu());
 
     return builder.createMutationTestUnits(this.code.getCodeUnderTestNames());
   }

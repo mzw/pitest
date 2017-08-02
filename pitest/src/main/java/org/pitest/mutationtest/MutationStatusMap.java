@@ -32,7 +32,13 @@ import org.pitest.mutationtest.engine.MutationDetails;
 public class MutationStatusMap {
 
   private final Map<MutationDetails, MutationStatusTestPair> mutationMap = new HashMap<MutationDetails, MutationStatusTestPair>();
-
+  
+  private final boolean enableAdamu;
+  
+  public MutationStatusMap(final boolean enableAdamu) {
+	  this.enableAdamu = enableAdamu;
+  }
+  
   public void setStatusForMutation(final MutationDetails mutation,
       final DetectionStatus status) {
     this.setStatusForMutations(Collections.singleton(mutation), status);
@@ -47,7 +53,7 @@ public class MutationStatusMap {
       final Collection<MutationDetails> mutations, final DetectionStatus status) {
     FCollection.forEach(mutations,
         putToMap(this.mutationMap, new MutationStatusTestPair(0, status)));
-    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+    if (this.enableAdamu) {
         jp.mzw.adamu.adaptation.Monitor.monitorMutationsResult(mutations, status);
     }
   }

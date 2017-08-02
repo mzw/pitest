@@ -23,15 +23,18 @@ public class WrappingProcess {
   private final Class<?>    minionClass;
 
   private JavaProcess       process;
+  
+  private final boolean enableAdamu;
 
-  public WrappingProcess(int port, ProcessArgs args, Class<?> minionClass) {
+  public WrappingProcess(int port, ProcessArgs args, Class<?> minionClass, final boolean enableAdamu) {
     this.port = port;
     this.processArgs = args;
     this.minionClass = minionClass;
+    this.enableAdamu = enableAdamu;
   }
 
   public void start() throws IOException {
-    final String[] args = { "" + this.port };
+    final String[] args = { "" + this.port, "" + this.enableAdamu };
 
     ProcessBuilder processBuilder = createProcessBuilder(
         this.processArgs.getJavaExecutable(), this.processArgs.getJvmArgs(),

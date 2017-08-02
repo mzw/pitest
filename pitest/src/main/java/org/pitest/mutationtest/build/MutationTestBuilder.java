@@ -39,14 +39,19 @@ public class MutationTestBuilder {
   private final WorkerFactory    workerFactory;
   private final MutationGrouper  grouper;
 
+  private final boolean enableAdamu;
+  
   public MutationTestBuilder(final WorkerFactory workerFactory,
       final MutationAnalyser analyser, final MutationSource mutationSource,
-      final MutationGrouper grouper) {
+      final MutationGrouper grouper,
+      final boolean enableAdamu) {
 
     this.mutationSource = mutationSource;
     this.analyser = analyser;
     this.workerFactory = workerFactory;
     this.grouper = grouper;
+    
+    this.enableAdamu = enableAdamu;
   }
 
   public List<MutationAnalysisUnit> createMutationTestUnits(
@@ -72,8 +77,8 @@ public class MutationTestBuilder {
     }
 
     if (!needAnalysis.isEmpty()) {
-    	    if (jp.mzw.adamu.core.AdaMu.enebled()) {
-    	        tus.addAll(jp.mzw.adamu.adaptation.Monitor.orderTestExecutionOnMutants(codeClasses, needAnalysis, this.grouper, this.workerFactory));
+    	    if (this.enableAdamu) {
+    	        tus.addAll(jp.mzw.adamu.adaptation.Monitor.orderTestExecutionOnMutants(codeClasses, needAnalysis, this.grouper, this.workerFactory, this.enableAdamu));
     	    } else {
     	        for (final Collection<MutationDetails> ms : this.grouper.groupMutations(codeClasses, needAnalysis)) {
                 tus.add(makeUnanalysedUnit(ms));
@@ -131,7 +136,7 @@ public class MutationTestBuilder {
     FCollection.flatMapTo(needAnalysis, mutationDetailsToTestClass(),
         uniqueTestClasses);
     return new MutationTestUnit(needAnalysis, uniqueTestClasses,
-        this.workerFactory);
+        this.workerFactory, this.enableAdamu);
   }
 
   private static F<MutationResult, MutationDetails> resultToDetails() {

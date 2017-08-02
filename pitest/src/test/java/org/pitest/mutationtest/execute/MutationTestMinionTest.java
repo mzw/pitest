@@ -65,7 +65,7 @@ public class MutationTestMinionTest {
     when(this.engine.createMutator(any(ClassByteArraySource.class)))
     .thenReturn(this.mutater);
 
-    this.testee = new MutationTestMinion(this.is, this.reporter);
+    this.testee = new MutationTestMinion(this.is, this.reporter, false);
   }
 
   @Test

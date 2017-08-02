@@ -57,13 +57,17 @@ public class MutationTestWorker {
   private final Mutater                                     mutater;
   private final ClassLoader                                 loader;
   private final F3<ClassName, ClassLoader, byte[], Boolean> hotswap;
+  
+  private final boolean enableAdamu;
 
   public MutationTestWorker(
       final F3<ClassName, ClassLoader, byte[], Boolean> hotswap,
-      final Mutater mutater, final ClassLoader loader) {
+      final Mutater mutater, final ClassLoader loader,
+      final boolean enableAdamu) {
     this.loader = loader;
     this.mutater = mutater;
     this.hotswap = hotswap;
+    this.enableAdamu = enableAdamu;
   }
 
   protected void run(final Collection<MutationDetails> range, final Reporter r,
@@ -106,7 +110,7 @@ public class MutationTestWorker {
     final MutationStatusTestPair mutationDetected = handleMutation(
         mutationDetails, mutatedClass, relevantTests);
     
-    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+    if (this.enableAdamu) {
     	    jp.mzw.adamu.adaptation.Monitor.monitorMutationResult(mutationDetails, mutationDetected.getStatus());
     }
 

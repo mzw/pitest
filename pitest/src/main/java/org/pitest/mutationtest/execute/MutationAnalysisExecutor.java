@@ -35,7 +35,7 @@ public class MutationAnalysisExecutor {
   }
 
   // entry point for mutation testing
-  public void run(final List<MutationAnalysisUnit> testUnits) {
+  public void run(final List<MutationAnalysisUnit> testUnits, final boolean enableAdamu) {
     jp.mzw.adamu.adaptation.Monitor.startAdaMuLogger();
     
     LOG.fine("Running " + testUnits.size() + " units");
@@ -45,7 +45,7 @@ public class MutationAnalysisExecutor {
     List<Future<MutationMetaData>> results = new ArrayList<Future<MutationMetaData>>(
         testUnits.size());
     
-    if (jp.mzw.adamu.core.AdaMu.enebled()) {
+    if (enableAdamu) {
         new jp.mzw.adamu.adaptation.Executor.Interrupter(this.executor).start();
     }
 

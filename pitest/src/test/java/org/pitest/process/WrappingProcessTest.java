@@ -43,7 +43,7 @@ public class WrappingProcessTest {
         .andStderr(nullHandler());
 
     WrappingProcess wrappingProcess = new WrappingProcess(-1, processArgs,
-        getClass());
+        getClass(), false);
     wrappingProcess.start();
     JavaProcess process = wrappingProcess.getProcess();
 

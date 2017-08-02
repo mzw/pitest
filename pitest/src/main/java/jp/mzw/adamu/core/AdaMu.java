@@ -29,23 +29,18 @@ public class AdaMu {
 	private List<String> testClassList;
 	private List<String> mutatorList;
 	
-	private static boolean enabled = true;
+	private boolean enabled = true;
 
 	public AdaMu(final File pathToSubjectDir, final MutationOperatorSet type, final boolean enabled) {
 		this.srcClassList = listClasses(pathToSubjectDir, "src/main/java");
 		this.testClassList = listClasses(pathToSubjectDir, "src/test/java");
 		this.mutatorList = new ArrayList<>();
 		this.mutatorList.add(type.name());
-		
-		AdaMu.enabled = enabled;
+		this.enabled = enabled;
 	}
 
 	public static enum MutationOperatorSet {
 		DEFAULTS, STRONGER, ALL
-	}
-	
-	public static boolean enebled() {
-		return enabled;
 	}
 
 	private List<String> listClasses(File pathToSubjectDir, String pathToTargetDir) {
@@ -107,6 +102,7 @@ public class AdaMu {
 		data.setSourceDirs(new ArrayList<File>());
 		data.setGroupConfig(new TestGroupConfig()); // Do not specify any test groups
 		data.setVerbose(true);
+		data.setAdamuEnabled(this.enabled);
 
 		data.setTargetClasses(Glob.toGlobPredicates(srcClassList));
 		data.setTargetTests(Glob.toGlobPredicates(testClassList));

@@ -65,7 +65,7 @@ public class Monitor extends MAPE {
 	 * @return 
 	 */
 	public static List<MutationAnalysisUnit> orderTestExecutionOnMutants(final Collection<ClassName> codeClasses, final Collection<MutationDetails> mutations,
-			final MutationGrouper grouper, WorkerFactory workerFactory) {
+			final MutationGrouper grouper, WorkerFactory workerFactory, final boolean enableAdamu) {
 		long start = System.currentTimeMillis();
 		List<MutationAnalysisUnit> ret = new ArrayList<MutationAnalysisUnit>();
 
@@ -99,7 +99,7 @@ public class Monitor extends MAPE {
 			}
 			final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
 			FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
-			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory);
+			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
 			ret.add(mtu);
 		} while (remain);
 		long end = System.currentTimeMillis();

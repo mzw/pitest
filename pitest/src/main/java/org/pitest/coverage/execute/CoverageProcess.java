@@ -20,7 +20,7 @@ public class CoverageProcess {
       final List<String> testClases, final SideEffect1<CoverageResult> handler)
           throws IOException {
     this.process = new WrappingProcess(socket.getLocalPort(), processArgs,
-        CoverageMinion.class);
+        CoverageMinion.class, false);
     this.crt = new CoverageCommunicationThread(socket, arguments, testClases,
         handler);
   }
