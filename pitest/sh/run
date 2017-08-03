@@ -72,6 +72,10 @@ cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
 cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
 ## Run at subject directory due to relative file path problem
 cd ${PATH_TO_SUBJECT_DIR}
+ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
+if [ -d ${PATH_TO_SUBJECT_DIR}/logs/latest ]; then
+        rm -r ${PATH_TO_SUBJECT_DIR}/logs/latest
+fi
 ## Run AdaMu
 /usr/bin/java \
 	-Xms6400m \
@@ -86,9 +90,6 @@ php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operato
 ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
 if [ -d ${ADAMU_RESULTS_DIR} ]; then
         rm -r ${ADAMU_RESULTS_DIR}
-fi
-if [ -d ${ADAMU_RESULTS_DIR}_${running_id} ]; then
-        rm -r ${ADAMU_RESULTS_DIR}_${running_id}
 fi
 mkdir -p ${ADAMU_RESULTS_DIR}
 cp ${PATH_TO_SUBJECT_DIR}/logs/latest/* ${ADAMU_RESULTS_DIR}
