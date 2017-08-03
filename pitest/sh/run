@@ -1,5 +1,6 @@
 #!/bin/sh
 
+ADAMU_HOME=$(pwd)
 PATH_TO_APACHE_COMMONS_DIR=~/workspace/apache-commons/
 
 if [ ${#} -le 1 ] || [ ${#} -gt 6 ]; then
@@ -82,24 +83,24 @@ php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operato
 
 
 # Copy results
-ADAMU_DIR="results/${subject}_${running_id}"
-if [ -d ${ADAMU_DIR} ]; then
-        rm -r ${ADAMU_DIR}
+ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
+if [ -d ${ADAMU_RESULTS_DIR} ]; then
+        rm -r ${ADAMU_RESULTS_DIR}
 fi
-if [ -d ${ADAMU_DIR}_${running_id} ]; then
-        rm -r ${ADAMU_DIR}_${running_id}
+if [ -d ${ADAMU_RESULTS_DIR}_${running_id} ]; then
+        rm -r ${ADAMU_RESULTS_DIR}_${running_id}
 fi
-mkdir -p ${ADAMU_DIR}
-cp ${PATH_TO_SUBJECT_DIR}/logs/latest/* ${ADAMU_DIR}
+mkdir -p ${ADAMU_RESULTS_DIR}
+cp ${PATH_TO_SUBJECT_DIR}/logs/latest/* ${ADAMU_RESULTS_DIR}
 
 cd - > /dev/null
 
 # Run R to visualize results
-ADAMU_R_GRAPH_FILE="${ADAMU_DIR}/graph.R"
+ADAMU_R_GRAPH_FILE="${ADAMU_RESULTS_DIR}/graph.R"
 if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
         rm ${ADAMU_R_GRAPH_FILE}
 fi
-echo "setwd(\"${ADAMU_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
+echo "setwd(\"${ADAMU_RESULTS_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
 echo "" >> ${ADAMU_R_GRAPH_FILE}
 cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
 R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
@@ -112,7 +113,7 @@ do
     if [ "s3-copy" = "${arg}" ]; then
         echo "Copy results to S3"
         S3_URI=`cat sh/s3.uri`
-        aws s3 cp ${ADAMU_DIR} ${S3_URI}/${subject}_${running_id} --recursive
+        aws s3 cp ${ADAMU_RESULTS_DIR} ${S3_URI}/${subject}_${running_id} --recursive
     fi
     ## Stop EC2 instance
     if [ "ec2-stop" = "${arg}" ]; then
