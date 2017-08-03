@@ -78,7 +78,6 @@ cd ${PATH_TO_SUBJECT_DIR}
 	-Djava.util.logging.config.file=target/classes/logging.properties \
 	jp.mzw.adamu.CLI run ${PATH_TO_SUBJECT_DIR} ${op} ${enalbed}
 ## Go back to AdaMu directory
-cd - > /dev/null
 php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
 
 
@@ -121,4 +120,4 @@ do
     fi
 done
 
-
+cd - > /dev/null
