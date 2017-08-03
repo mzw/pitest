@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATH_TO_APACHE_COMMONS_DIR=/Users/yuta/workspace/apache-commons/
+PATH_TO_APACHE_COMMONS_DIR=~/workspace/apache-commons/
 
 if [ ${#} -le 1 ] || [ ${#} -gt 3 ]; then
 	echo "command [subject] [set of mutation operators] [(optional) disabled]"
@@ -10,6 +10,8 @@ fi
 # Subject
 if [ ${1} = "cli" ]; then
 	subject=commons-cli
+elif [ ${1} = "csv" ]; then
+	subject=commons-csv
 elif [ ${1} = "math" ]; then
 	subject=commons-math
 else
