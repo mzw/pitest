@@ -2,8 +2,8 @@
 
 PATH_TO_APACHE_COMMONS_DIR=~/workspace/apache-commons/
 
-if [ ${#} -le 1 ] || [ ${#} -gt 3 ]; then
-	echo "command [subject] [set of mutation operators] [(optional) disabled]"
+if [ ${#} -le 1 ] || [ ${#} -gt 6 ]; then
+	echo "command [subject] [set of mutation operators] [running id] [(opt.) disabled] [(opt.) s3-copy] [(opt. ec2-stop)]"
 	exit
 fi
 
