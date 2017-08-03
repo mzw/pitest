@@ -47,14 +47,21 @@ else
 	exit
 fi
 
-## Enable AdaMu
-if [ ${#} -gt 2 ]; then
-	enalbed=${3}
-fi
+# Running ID
+running_id=${3}
 
+## Enable AdaMu
+enalbed="enabled"
+for arg in $@
+do
+    if [ "disabled" = "${arg}" ]; then
+        echo "Disable AdaMu"
+        enalbed=${arg}
+    fi
+done
 
 # AdaMu
-# php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
 ## Configure class path
 cp="$(pwd)/target/classes"
 cp="${cp}:$(pwd)/target/test-classes"
@@ -72,3 +79,46 @@ cd ${PATH_TO_SUBJECT_DIR}
 	jp.mzw.adamu.CLI run ${PATH_TO_SUBJECT_DIR} ${op} ${enalbed}
 ## Go back to AdaMu directory
 cd - > /dev/null
+php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+
+
+# Copy results
+ADAMU_DIR="results/${subject}_${running_id}"
+if [ -d ${ADAMU_DIR} ]; then
+        rm -r ${ADAMU_DIR}
+fi
+if [ -d ${ADAMU_DIR}_${running_id} ]; then
+        rm -r ${ADAMU_DIR}_${running_id}
+fi
+mkdir -p ${ADAMU_DIR}
+cp logs/latest/* ${ADAMU_DIR}
+
+
+# Run R to visualize results
+ADAMU_R_GRAPH_FILE="${ADAMU_DIR}/graph.R"
+if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
+        rm ${ADAMU_R_GRAPH_FILE}
+fi
+echo "setwd(\"${ADAMU_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
+echo "" >> ${ADAMU_R_GRAPH_FILE}
+cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
+R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
+
+
+# Options
+for arg in $@
+do
+    ## Copy results to S3
+    if [ "s3-copy" = "${arg}" ]; then
+        echo "Copy results to S3"
+        S3_URI=`cat sh/s3.uri`
+        aws s3 cp ${ADAMU_DIR} ${S3_URI}/${subject}_${running_id} --recursive
+    fi
+    ## Stop EC2 instance
+    if [ "ec2-stop" = "${arg}" ]; then
+        echo "Stop EC2"
+        sh/ec2-stop
+    fi
+done
+
+
