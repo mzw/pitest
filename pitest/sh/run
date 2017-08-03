@@ -90,8 +90,9 @@ if [ -d ${ADAMU_DIR}_${running_id} ]; then
         rm -r ${ADAMU_DIR}_${running_id}
 fi
 mkdir -p ${ADAMU_DIR}
-cp logs/latest/* ${ADAMU_DIR}
+cp ${PATH_TO_SUBJECT_DIR}/logs/latest/* ${ADAMU_DIR}
 
+cd - > /dev/null
 
 # Run R to visualize results
 ADAMU_R_GRAPH_FILE="${ADAMU_DIR}/graph.R"
@@ -120,4 +121,3 @@ do
     fi
 done
 
-cd - > /dev/null
