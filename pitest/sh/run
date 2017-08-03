@@ -8,16 +8,17 @@ if [ ${#} -le 1 ] || [ ${#} -gt 3 ]; then
 fi
 
 # Subject
-if [ ${1} = "cli" ]; then
-	subject=commons-cli
-elif [ ${1} = "csv" ]; then
-	subject=commons-csv
-elif [ ${1} = "math" ]; then
-	subject=commons-math
-else
-	echo "Give valid target, e.g., 'cli'"
-	exit
-fi
+subject="commons-${1}"
+# if [ ${1} = "cli" ]; then
+# 	subject=commons-cli
+# elif [ ${1} = "csv" ]; then
+# 	subject=commons-csv
+# elif [ ${1} = "math" ]; then
+# 	subject=commons-math
+# else
+# 	echo "Give valid target, e.g., 'cli'"
+# 	exit
+# fi
 PATH_TO_SUBJECT_DIR="${PATH_TO_APACHE_COMMONS_DIR}${subject}"
 ## Compile subject
 cd ${PATH_TO_SUBJECT_DIR}
