@@ -114,7 +114,7 @@ do
     if [ "s3-copy" = "${arg}" ]; then
         echo "Copy results to S3"
         S3_URI=`cat sh/s3.uri`
-        aws s3 cp ${ADAMU_RESULTS_DIR} ${S3_URI}/${subject}_${running_id} --recursive
+        aws s3 cp ${ADAMU_RESULTS_DIR} ${S3_URI}/${subject}/${op}/${enalbed}/${running_id} --recursive
     fi
     ## Stop EC2 instance
     if [ "ec2-stop" = "${arg}" ]; then
