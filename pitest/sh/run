@@ -64,12 +64,12 @@ done
 # AdaMu
 php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
 ## Configure class path
-cp="$(pwd)/target/classes"
-cp="${cp}:$(pwd)/target/test-classes"
-cp="${cp}:$(pwd)/target/dependency/*"
-cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/classes"
+cp="${PATH_TO_SUBJECT_DIR}/target/classes"
 cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
 cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
+cp="${cp}:$(pwd)/target/classes"
+cp="${cp}:$(pwd)/target/test-classes"
+cp="${cp}:$(pwd)/target/dependency/*"
 ## Run at subject directory due to relative file path problem
 cd ${PATH_TO_SUBJECT_DIR}
 ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
