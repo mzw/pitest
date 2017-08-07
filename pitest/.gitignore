@@ -2,6 +2,7 @@ adamu.log
 pitest.log*
 logs/*
 res/rawdata/*
+results/
 
 ### OSX ###
 .DS_Store
