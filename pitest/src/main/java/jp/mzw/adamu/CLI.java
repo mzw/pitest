@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import org.apache.maven.shared.invoker.MavenInvocationException;
+
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.core.AdaMu;
 
@@ -14,7 +16,7 @@ import jp.mzw.adamu.core.AdaMu;
  *
  */
 public class CLI {
-     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException, MavenInvocationException {
           if (args.length == 0) {
                System.err.println("jp.mzw.adamu.CLI <command> <arguments>");
                System.exit(-1);
@@ -30,7 +32,7 @@ public class CLI {
           }
      }
      
-     private static void run(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+     private static void run(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException, MavenInvocationException {
           if (args.length < 2) {
                System.err.println("jp.mzw.adamu.CLI run <path to subject directory> <mutation operator set> <(optional) enabled>");
                System.exit(-1);
