@@ -103,7 +103,7 @@ if [ -f ${ADAMU_R_GRAPH_FILE} ]; then
 fi
 echo "setwd(\"${ADAMU_RESULTS_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
 echo "" >> ${ADAMU_R_GRAPH_FILE}
-cat res/commands/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
+cat src/main/resources/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
 R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 
