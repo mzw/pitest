@@ -62,7 +62,12 @@ do
 done
 
 # AdaMu
-php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+for arg in $@
+do
+    if [ "slack" = "${arg}" ]; then
+		php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+    fi
+done
 ## Configure class path
 cp="${PATH_TO_SUBJECT_DIR}/target/classes"
 cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
@@ -78,13 +83,12 @@ if [ -d ${PATH_TO_SUBJECT_DIR}/logs/latest ]; then
 fi
 ## Run AdaMu
 /usr/bin/java \
+	-Xloggc:gc.txt \
 	-Xms6400m \
 	-cp ${cp} \
 	-Djava.util.logging.config.file=target/classes/logging.properties \
 	jp.mzw.adamu.CLI run ${PATH_TO_SUBJECT_DIR} ${op} ${enalbed}
 ## Go back to AdaMu directory
-php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
-
 
 # Copy results
 ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
@@ -123,3 +127,10 @@ do
     fi
 done
 
+
+for arg in $@
+do
+    if [ "slack" = "${arg}" ]; then
+		php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+    fi
+done
