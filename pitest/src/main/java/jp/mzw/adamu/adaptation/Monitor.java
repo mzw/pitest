@@ -66,9 +66,109 @@ public class Monitor extends MAPE {
 	 */
 	public static List<MutationAnalysisUnit> orderTestExecutionOnMutants(final Collection<ClassName> codeClasses, final Collection<MutationDetails> mutations,
 			final MutationGrouper grouper, WorkerFactory workerFactory, final boolean enableAdamu) {
+//		long start = System.currentTimeMillis();
+//
+//		// Find mutations whose mutated classes are same
+//		final Map<String, List<MutationDetails>> class_based_mutation_map = new HashMap<>();
+//		for (final MutationDetails mutation : mutations) {
+//			final String className = mutation.getClassName().asJavaName();
+//			List<MutationDetails> class_based_mutation_list = class_based_mutation_map.get(className);
+//			if (class_based_mutation_list == null) {
+//				class_based_mutation_list = new ArrayList<>();
+//				class_based_mutation_map.put(className, class_based_mutation_list);
+//			}
+//			class_based_mutation_list.add(mutation);
+//		}
+//		
+//		// Find mutations whose mutated classes AND methods are same
+//		final Map<String, Map<String, List<MutationDetails>>> class_method_based_mutation_map = new HashMap<>();
+//		for (String className : class_based_mutation_map.keySet()) {
+//			final List<MutationDetails> class_based_mutation_list = class_based_mutation_map.get(className);
+//			final Map<String, List<MutationDetails>> method_based_mutation_map = new HashMap<>();
+//			for (MutationDetails mutation : class_based_mutation_list) {
+//				final String methodName = mutation.getMethod().name();
+//				List<MutationDetails> method_based_mutation_list = method_based_mutation_map.get(methodName);
+//				if (method_based_mutation_list == null) {
+//					method_based_mutation_list = new ArrayList<>();
+//					method_based_mutation_map.put(methodName, method_based_mutation_list);
+//				}
+//				method_based_mutation_list.add(mutation);
+//			}
+//			class_method_based_mutation_map.put(className, method_based_mutation_map);
+//		}
+//		
+//		// Create mutation analysis units
+//		final Map<String, List<MutationTestUnit>> mtu_map = new HashMap<>();
+//		final List<MutationDetails> same_class_different_method_mutation_list = new ArrayList<>();
+//		for (String className : class_method_based_mutation_map.keySet()) {
+//			final Map<String, List<MutationDetails>> method_based_mutation_map = class_method_based_mutation_map.get(className);
+//			
+//			boolean remain = true;
+//			final List<MutationTestUnit> mts_list = new ArrayList<>();
+//			do {
+//				remain = false;
+////				final List<MutationDetails> same_class_different_method_mutation_list = new ArrayList<>();
+//				for (String methodName : method_based_mutation_map.keySet()) {
+//					final List<MutationDetails> method_based_mutation_list = method_based_mutation_map.get(methodName);
+//					if (0 < method_based_mutation_list.size()) {
+//						MutationDetails mutation = method_based_mutation_list.remove(0);
+//						same_class_different_method_mutation_list.add(mutation);
+//					}
+//					if (!method_based_mutation_list.isEmpty()) {
+//						remain = true;
+//					}
+//				}
+////				final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+////				FCollection.flatMapTo(same_class_different_method_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
+////				MutationTestUnit mtu = new MutationTestUnit(same_class_different_method_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
+////				mts_list.add(mtu);
+//			} while (remain);
+//			
+//			mtu_map.put(className, mts_list);
+//		}
+//		final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+//		FCollection.flatMapTo(same_class_different_method_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
+//		MutationTestUnit mtu = new MutationTestUnit(same_class_different_method_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
+//
+//		// Sort mutation analysis units
+//		final List<MutationAnalysisUnit> units = new ArrayList<MutationAnalysisUnit>();
+////		boolean remain = true;
+////		do {
+////			remain = false;
+////			for (String className : class_method_based_mutation_map.keySet()) {
+////				final List<MutationTestUnit> mtu_list = mtu_map.get(className);
+////				if (0 < mtu_list.size()) {
+////					MutationTestUnit mtu = mtu_list.remove(0);
+////					units.add(mtu);
+////				}
+////				if (!mtu_list.isEmpty()) {
+////					remain = true;
+////				}
+////			}
+////		} while (remain);
+//		units.add(mtu);
+//
+//		// Measure overhead
+//		long end = System.currentTimeMillis();
+//		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);
+//		
+//		// Store mutation information
+//		try {
+//			Mutations db = Mutations.getInstance();
+//			for (MutationAnalysisUnit unit : units) {
+//				MutationTestUnit _unit = (MutationTestUnit) unit;
+//				for (MutationDetails mutation : _unit.getAvailableMutations()) {
+//					db.insert(mutation.hashCode(), mutation.getClassName().toString(), mutation.getMethod().name(), mutation.getLineNumber(), mutation.getMutator());
+//				}
+//			}
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//
+//		return units;
+		
 		long start = System.currentTimeMillis();
 		List<MutationAnalysisUnit> ret = new ArrayList<MutationAnalysisUnit>();
-
 		Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
 		for (MutationDetails mutation : mutations) {
 			String methodName = mutation.getClassName() + "#" + mutation.getMethod();
@@ -84,8 +184,8 @@ public class Monitor extends MAPE {
 			Collections.shuffle(mutation_list);
 		}
 		boolean remain = true;
+		Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
 		do {
-			Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
 			remain = false;
 			for (String methodName : method_mutation_map.keySet()) {
 				List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
@@ -97,11 +197,12 @@ public class Monitor extends MAPE {
 					remain = true;
 				}
 			}
-			final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-			FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
-			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
-			ret.add(mtu);
 		} while (remain);
+		final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
+		FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
+		MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
+		ret.add(mtu);
+		
 		long end = System.currentTimeMillis();
 		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);
 		
@@ -117,7 +218,6 @@ public class Monitor extends MAPE {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 		return ret;
 	}
 	
