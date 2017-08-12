@@ -88,7 +88,6 @@ fi
 	-cp ${cp} \
 	-Djava.util.logging.config.file=target/classes/logging.properties \
 	jp.mzw.adamu.CLI run ${PATH_TO_SUBJECT_DIR} ${op} ${enalbed}
-## Go back to AdaMu directory
 
 # Copy results
 ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
@@ -98,6 +97,7 @@ fi
 mkdir -p ${ADAMU_RESULTS_DIR}
 cp ${PATH_TO_SUBJECT_DIR}/logs/latest/* ${ADAMU_RESULTS_DIR}
 
+## Go back to AdaMu directory
 cd - > /dev/null
 
 # Run R to visualize results
