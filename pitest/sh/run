@@ -83,7 +83,6 @@ if [ -d ${PATH_TO_SUBJECT_DIR}/logs/latest ]; then
 fi
 ## Run AdaMu
 /usr/bin/java \
-	-Xloggc:gc.txt \
 	-Xms6400m \
 	-cp ${cp} \
 	-Djava.util.logging.config.file=target/classes/logging.properties \
