@@ -49,9 +49,9 @@ public class Executor extends MAPE {
 		// forecast
 		long start = System.currentTimeMillis();
 		double ams = forecastAms(testResultList, mutationList);
-//		if (ams < 0) {
-//			return;
-//		}
+		if (ams < 0) {
+			return;
+		}
 		boolean consumed = consumed(testResultList, mutationList, ams);
 		AMS.getInstance().insert(num_examined_mutants, ams);
 		logger.info("Approximate mutation score: {} @ {}", ams, num_examined_mutants);
@@ -157,9 +157,9 @@ public class Executor extends MAPE {
 			if (!examined_mutants_hashcode_list.contains(mutation.getHashcode())) {
 				String key = getClassMethodKey(mutation);
 				List<TestResult> corr_examined_mutants = method_result_map.get(key);
-//				if (corr_examined_mutants == null) {
-//					return -1.0;
-//				}
+				if (corr_examined_mutants == null) {
+					return -1.0;
+				}
 
 				int num_corr_killed_mutants = 0;
 				int num_corr_examined_mutants = 0;
