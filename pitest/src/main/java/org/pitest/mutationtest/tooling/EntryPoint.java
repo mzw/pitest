@@ -90,11 +90,10 @@ public class EntryPoint {
         baseDir, coverageOptions, launchOptions, code,
         settings.createCoverageExporter(), timings, !data.isVerbose());
 
-//    final HistoryStore history = new XStreamHistoryStore(historyWriter, reader);
+    final HistoryStore history = new XStreamHistoryStore(historyWriter, reader);
 
     final MutationStrategies strategies = new MutationStrategies(
-//        settings.createEngine(), history, coverageDatabase, reportFactory,
-          settings.createEngine(), null, coverageDatabase, reportFactory,
+        settings.createEngine(), history, coverageDatabase, reportFactory,
         reportOutput);
 
     final MutationCoverage report = new MutationCoverage(strategies, baseDir,
