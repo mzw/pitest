@@ -65,16 +65,25 @@ done
 for arg in $@
 do
     if [ "slack" = "${arg}" ]; then
-		php sh/slack.php AdaMu "start to run: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+		php sh/slack.php AdaMu "start to run (${running_id}, ${enabled}): \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
     fi
 done
 ## Configure class path
-cp="${PATH_TO_SUBJECT_DIR}/target/classes"
-cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
-cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
-cp="${cp}:$(pwd)/target/classes"
-cp="${cp}:$(pwd)/target/test-classes"
-cp="${cp}:$(pwd)/target/dependency/*"
+if [ ${1} = "dbcp" ]; then
+	cp="$(pwd)/target/classes"
+	cp="${cp}:$(pwd)/target/test-classes"
+	cp="${cp}:$(pwd)/target/dependency/*"
+	cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/classes"
+	cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
+	cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
+else
+	cp="${PATH_TO_SUBJECT_DIR}/target/classes"
+	cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/test-classes"
+	cp="${cp}:${PATH_TO_SUBJECT_DIR}/target/dependency/*"
+	cp="${cp}:$(pwd)/target/classes"
+	cp="${cp}:$(pwd)/target/test-classes"
+	cp="${cp}:$(pwd)/target/dependency/*"
+fi
 ## Run at subject directory due to relative file path problem
 cd ${PATH_TO_SUBJECT_DIR}
 ADAMU_RESULTS_DIR="${ADAMU_HOME}/results/${subject}_${running_id}"
@@ -130,6 +139,6 @@ done
 for arg in $@
 do
     if [ "slack" = "${arg}" ]; then
-		php sh/slack.php AdaMu "Finished: \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+		php sh/slack.php AdaMu "Finished (${running_id}, ${enabled}): \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
     fi
 done
