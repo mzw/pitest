@@ -5,30 +5,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import jp.mzw.adamu.adaptation.knowledge.KnowledgeBase;
 import jp.mzw.adamu.adaptation.knowledge.Mutations;
-import jp.mzw.adamu.adaptation.knowledge.Overhead;
 import jp.mzw.adamu.adaptation.knowledge.Stats;
 import jp.mzw.adamu.adaptation.knowledge.RtMS;
 import jp.mzw.adamu.adaptation.knowledge.TestResults;
 import jp.mzw.adamu.adaptation.knowledge.data.Mutation;
 import jp.mzw.adamu.adaptation.knowledge.data.TestResult;
 
-import org.pitest.classinfo.ClassName;
-import org.pitest.functional.FCollection;
 import org.pitest.mutationtest.DetectionStatus;
-import org.pitest.mutationtest.build.MutationAnalysisUnit;
-import org.pitest.mutationtest.build.MutationGrouper;
-import org.pitest.mutationtest.build.MutationTestBuilder;
-import org.pitest.mutationtest.build.MutationTestUnit;
-import org.pitest.mutationtest.build.WorkerFactory;
 import org.pitest.mutationtest.engine.MutationDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,72 +42,6 @@ public class Monitor extends MAPE {
 		}
 	}
 
-	/**
-	 * Order mutants to be examined by test cases
-	 * according to methods where PIT applies mutation operators to create them
-	 * @param codeClasses
-	 * @param mutations
-	 * @param grouper
-	 * @param workerFactory
-	 * @return 
-	 */
-	public static List<MutationAnalysisUnit> orderTestExecutionOnMutants(final Collection<ClassName> codeClasses, final Collection<MutationDetails> mutations,
-			final MutationGrouper grouper, WorkerFactory workerFactory, final boolean enableAdamu) {
-		long start = System.currentTimeMillis();
-		List<MutationAnalysisUnit> ret = new ArrayList<MutationAnalysisUnit>();
-
-		Map<String, List<MutationDetails>> method_mutation_map = new HashMap<>();
-		for (MutationDetails mutation : mutations) {
-			String methodName = mutation.getClassName() + "#" + mutation.getMethod();
-			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-			if (mutation_list == null) {
-				mutation_list = new ArrayList<>();
-			}
-			mutation_list.add(mutation);
-			method_mutation_map.put(methodName, mutation_list);
-		}
-		for (String methodName : method_mutation_map.keySet()) {
-			List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-			Collections.shuffle(mutation_list);
-		}
-		boolean remain = true;
-		do {
-			remain = false;
-			Collection<MutationDetails> method_based_mutation_list = new ArrayList<>();
-			for (String methodName : method_mutation_map.keySet()) {
-				List<MutationDetails> mutation_list = method_mutation_map.get(methodName);
-				if (0 < mutation_list.size()) {
-					MutationDetails mutation = mutation_list.remove(0);
-					method_based_mutation_list.add(mutation);
-				}
-				if (!mutation_list.isEmpty()) {
-					remain = true;
-				}
-			}
-			final Set<ClassName> uniqueTestClasses = new HashSet<ClassName>();
-			FCollection.flatMapTo(method_based_mutation_list, MutationTestBuilder.mutationDetailsToTestClass(), uniqueTestClasses);
-			MutationTestUnit mtu = new MutationTestUnit(method_based_mutation_list, uniqueTestClasses, workerFactory, enableAdamu);
-			ret.add(mtu);
-		} while (remain);
-
-		long end = System.currentTimeMillis();
-		Overhead.getInstance().insert(Overhead.Type.TestExecOrder, end - start);
-
-		// Store mutation information
-		try {
-			Mutations db = Mutations.getInstance();
-			for (MutationAnalysisUnit unit : ret) {
-				MutationTestUnit _unit = (MutationTestUnit) unit;
-				for (MutationDetails mutation : _unit.getAvailableMutations()) {
-					db.insert(mutation.hashCode(), mutation.getClassName().toString(), mutation.getMethod().name(), mutation.getLineNumber(),
-							mutation.getMutator());
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return ret;
-	}
 
 	/**
 	 * Monitor test execution results on each mutant created by PIT

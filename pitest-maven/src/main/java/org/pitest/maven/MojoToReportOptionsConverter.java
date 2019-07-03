@@ -19,8 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -28,21 +30,23 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.pitest.functional.F;
+import org.pitest.classinfo.ClassName;
+import org.pitest.classpath.DirectoryClassPathRoot;
+import java.util.function.Function;
 import org.pitest.functional.FCollection;
-import org.pitest.functional.predicate.Predicate;
+import java.util.function.Predicate;
 import org.pitest.mutationtest.config.ReportOptions;
 import org.pitest.testapi.TestGroupConfig;
 import org.pitest.util.Glob;
 
 public class MojoToReportOptionsConverter {
 
-  private final PitMojo                 mojo;
+  private final AbstractPitMojo                 mojo;
   private final Predicate<Artifact>     dependencyFilter;
   private final Log                     log;
   private final SurefireConfigConverter surefireConverter;
 
-  public MojoToReportOptionsConverter(final PitMojo mojo,
+  public MojoToReportOptionsConverter(final AbstractPitMojo mojo,
       SurefireConfigConverter surefireConverter,
       Predicate<Artifact> dependencyFilter) {
     this.mojo = mojo;
@@ -51,10 +55,9 @@ public class MojoToReportOptionsConverter {
     this.surefireConverter = surefireConverter;
   }
 
-  @SuppressWarnings("unchecked")
   public ReportOptions convert() {
 
-    final List<String> classPath = new ArrayList<String>();
+    final List<String> classPath = new ArrayList<>();
 
     try {
       classPath.addAll(this.mojo.getProject().getTestClasspathElements());
@@ -80,7 +83,6 @@ public class MojoToReportOptionsConverter {
 
   }
 
-  @SuppressWarnings("unchecked")
   private ReportOptions parseReportOptions(final List<String> classPath) {
     final ReportOptions data = new ReportOptions();
 
@@ -91,6 +93,8 @@ public class MojoToReportOptionsConverter {
           .getOutputDirectory()));
     }
 
+    data.setUseClasspathJar(this.mojo.isUseClasspathJar());
+    data.setTestPlugin(this.mojo.getTestPlugin());
     data.setClassPathElements(classPath);
     data.setDependencyAnalysisMaxDistance(this.mojo.getMaxDependencyDistance());
     data.setFailWhenNoMutations(shouldFailWhenNoMutations());
@@ -98,13 +102,13 @@ public class MojoToReportOptionsConverter {
     data.setTargetClasses(determineTargetClasses());
     data.setTargetTests(determineTargetTests());
 
-    data.setMutateStaticInitializers(this.mojo.isMutateStaticInitializers());
-    data.setExcludedMethods(globStringsToPredicates(this.mojo
-        .getExcludedMethods()));
-    data.setExcludedClasses(globStringsToPredicates(this.mojo
-        .getExcludedClasses()));
+    data.setExcludedMethods(this.mojo
+        .getExcludedMethods());
+    data.setExcludedClasses(this.mojo.getExcludedClasses());
+    data.setExcludedTestClasses(globStringsToPredicates(this.mojo
+        .getExcludedTestClasses()));
     data.setNumberOfThreads(this.mojo.getThreads());
-    data.setMaxMutationsPerClass(this.mojo.getMaxMutationsPerClass());
+    data.setExcludedRunners(this.mojo.getExcludedRunners());
 
     data.setReportDir(this.mojo.getReportsDirectory().getAbsolutePath());
     data.setVerbose(this.mojo.isVerbose());
@@ -113,13 +117,14 @@ public class MojoToReportOptionsConverter {
     }
 
     data.setMutators(determineMutators());
+    data.setFeatures(determineFeatures());
     data.setTimeoutConstant(this.mojo.getTimeoutConstant());
     data.setTimeoutFactor(this.mojo.getTimeoutFactor());
     if (hasValue(this.mojo.getAvoidCallsTo())) {
       data.setLoggingClasses(this.mojo.getAvoidCallsTo());
     }
 
-    final List<String> sourceRoots = new ArrayList<String>();
+    final List<String> sourceRoots = new ArrayList<>();
     sourceRoots.addAll(this.mojo.getProject().getCompileSourceRoots());
     sourceRoots.addAll(this.mojo.getProject().getTestCompileSourceRoots());
 
@@ -128,6 +133,8 @@ public class MojoToReportOptionsConverter {
     data.addOutputFormats(determineOutputFormats());
 
     setTestGroups(data);
+
+    data.setFullMutationMatrix(this.mojo.isFullMutationMatrix());
 
     data.setMutationUnitSize(this.mojo.getMutationUnitSize());
     data.setShouldCreateTimestampedReports(this.mojo.isTimestampedReports());
@@ -139,9 +146,13 @@ public class MojoToReportOptionsConverter {
     data.setMutationEngine(this.mojo.getMutationEngine());
     data.setJavaExecutable(this.mojo.getJavaExecutable());
     data.setFreeFormProperties(createPluginProperties());
+    data.setIncludedTestMethods(this.mojo.getIncludedTestMethods());
+
+    data.setSkipFailingTests(this.mojo.skipFailingTests());
 
     return data;
   }
+
 
   private void determineHistory(final ReportOptions data) {
     if (this.mojo.useHistory()) {
@@ -154,7 +165,7 @@ public class MojoToReportOptionsConverter {
 
   private void useHistoryFileInTempDir(final ReportOptions data) {
     String tempDir = System.getProperty("java.io.tmpdir");
-    MavenProject project = this.mojo.project;
+    MavenProject project = this.mojo.getProject();
     String name = project.getGroupId() + "."
         + project.getArtifactId() + "."
         + project.getVersion() + "_pitest_history.bin";
@@ -188,15 +199,14 @@ public class MojoToReportOptionsConverter {
   }
 
   private Collection<Plugin> lookupPlugin(String key) {
-    @SuppressWarnings("unchecked")
     List<Plugin> plugins = this.mojo.getProject().getBuildPlugins();
     return FCollection.filter(plugins, hasKey(key));
   }
 
-  private static F<Plugin, Boolean> hasKey(final String key) {
-    return new F<Plugin, Boolean>() {
+  private static Predicate<Plugin> hasKey(final String key) {
+    return new Predicate<Plugin>() {
       @Override
-      public Boolean apply(Plugin a) {
+      public boolean test(Plugin a) {
         return a.getKey().equals(key);
       }
     };
@@ -242,33 +252,57 @@ public class MojoToReportOptionsConverter {
     }
   }
 
-  private Collection<Predicate<String>> determineTargetClasses() {
-    return returnOrDefaultToClassesLikeGroupName(this.mojo.getTargetClasses());
+  private Collection<String> determineFeatures() {
+      if (this.mojo.getFeatures() != null) {
+        return this.mojo.getFeatures();
+      } else {
+        return Collections.emptyList();
+      }
+  }  
+  
+  private Collection<String> determineTargetClasses() {
+    return useConfiguredTargetClassesOrFindOccupiedPackages(this.mojo.getTargetClasses());
   }
 
-  private Collection<Predicate<String>> returnOrDefaultToClassesLikeGroupName(
+  private Collection<String> useConfiguredTargetClassesOrFindOccupiedPackages(
       final Collection<String> filters) {
     if (!hasValue(filters)) {
-      final String groupId = this.mojo.getProject().getGroupId() + "*";
-      this.mojo.getLog().info("Defaulting to group id (" + groupId + ")");
-      return Collections.<Predicate<String>> singleton(new Glob(groupId));
+      this.mojo.getLog().info("Defaulting target classes to match packages in build directory");
+      return findOccupiedPackages();
     } else {
-      return FCollection.map(filters, Glob.toGlobPredicate());
+      return filters;
     }
+  }
+  
+  
+  private Collection<String> findOccupiedPackages() {
+    String outputDirName = this.mojo.getProject().getBuild()
+        .getOutputDirectory();
+    File outputDir = new File(outputDirName);
+    return findOccupiedPackagesIn(outputDir);
+  }
+  
+  public static Collection<String> findOccupiedPackagesIn(File dir) {
+    if (dir.exists()) {
+      DirectoryClassPathRoot root = new DirectoryClassPathRoot(dir);
+      Set<String> occupiedPackages = new HashSet<>();
+      FCollection.mapTo(root.classNames(), classToPackageGlob(),
+          occupiedPackages);
+      return occupiedPackages;
+    }
+    return Collections.emptyList();
+  }
+  
+  private static Function<String,String> classToPackageGlob() {
+    return a -> ClassName.fromString(a).getPackage().asJavaName() + ".*";
   }
 
   private Collection<File> stringsTofiles(final List<String> sourceRoots) {
     return FCollection.map(sourceRoots, stringToFile());
   }
 
-  private F<String, File> stringToFile() {
-    return new F<String, File>() {
-      @Override
-      public File apply(final String a) {
-        return new File(a);
-      }
-
-    };
+  private Function<String, File> stringToFile() {
+    return a -> new File(a);
   }
 
   private Collection<String> determineOutputFormats() {
