@@ -116,7 +116,7 @@ fi
 echo "setwd(\"${ADAMU_RESULTS_DIR}\")" >> ${ADAMU_R_GRAPH_FILE}
 echo "" >> ${ADAMU_R_GRAPH_FILE}
 cat src/main/resources/graph.template.R >> ${ADAMU_R_GRAPH_FILE}
-R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
+#R --vanilla --slave < ${ADAMU_R_GRAPH_FILE}
 
 
 # Options
@@ -136,9 +136,9 @@ do
 done
 
 
-for arg in $@
-do
-    if [ "slack" = "${arg}" ]; then
-		php sh/slack.php AdaMu "Finished (${running_id}, ${enabled}): \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
-    fi
-done
+#for arg in $@
+#do
+#    if [ "slack" = "${arg}" ]; then
+		#php sh/slack.php AdaMu "Finished (${running_id}, ${enabled}): \"${subject}\" with \"${op}\" mutation operator set" > /dev/null
+#    fi
+#done
