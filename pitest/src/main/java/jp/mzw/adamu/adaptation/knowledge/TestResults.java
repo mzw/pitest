@@ -69,8 +69,8 @@ public class TestResults extends KnowledgeBase implements DataBase {
 			stmt.executeUpdate(query.toString());
 			stmt.close();
 		} catch (SQLException e) {
-			System.exit(-1);
 			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 

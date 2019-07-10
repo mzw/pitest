@@ -131,7 +131,7 @@ public class ReportOptions {
 
   private Properties                     properties;
   
-  private boolean                        enableAdamu                     = true;
+  private boolean                        enableAdamu                     = false;
   
   public boolean enableAdamu() {
     return this.enableAdamu;

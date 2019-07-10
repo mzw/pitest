@@ -35,7 +35,9 @@ public class MutationAnalysisExecutor {
 
   // entry point for mutation testing
   public void run(final List<MutationAnalysisUnit> testUnits, final boolean enableAdamu) {
-    jp.mzw.adamu.adaptation.Monitor.startAdaMuLogger();
+    if (enableAdamu) {
+      jp.mzw.adamu.adaptation.Monitor.startAdaMuLogger();
+    }
     
     LOG.fine("Running " + testUnits.size() + " units");
 
