@@ -15,18 +15,18 @@
 package org.pitest.util;
 
 import java.util.Collection;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import org.pitest.functional.F;
 import org.pitest.functional.FCollection;
-import org.pitest.functional.predicate.Predicate;
 
 public class Glob implements Predicate<String> {
 
   private final Pattern regex;
 
   public Glob(final String glob) {
-    if (glob.charAt(0) == '~') {
+    if (glob.startsWith("~")) {
       this.regex = Pattern.compile(glob.substring(1));
     } else {
       this.regex = Pattern.compile(convertGlobToRegex(glob)
@@ -38,13 +38,8 @@ public class Glob implements Predicate<String> {
     return this.regex.matcher(seq).matches();
   }
 
-  public static F<String, Predicate<String>> toGlobPredicate() {
-    return new F<String, Predicate<String>>() {
-      @Override
-      public Glob apply(final String glob) {
-        return new Glob(glob);
-      }
-    };
+  public static Function<String, Predicate<String>> toGlobPredicate() {
+    return glob -> new Glob(glob);
   }
 
   public static Collection<Predicate<String>> toGlobPredicates(
@@ -81,7 +76,7 @@ public class Glob implements Predicate<String> {
   }
 
   @Override
-  public Boolean apply(final String value) {
+  public boolean test(final String value) {
     return matches(value);
   }
 

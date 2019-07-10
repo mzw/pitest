@@ -14,6 +14,7 @@
  */
 package org.pitest.mutationtest.engine;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,33 +22,36 @@ import java.util.List;
 import org.pitest.classinfo.ClassName;
 import org.pitest.coverage.ClassLine;
 import org.pitest.coverage.TestInfo;
+import org.pitest.util.Preconditions;
 import org.pitest.util.StringUtil;
 
 /**
  * Captures all data relating to a mutant.
  */
-public final class MutationDetails {
+public final class MutationDetails implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private final MutationIdentifier  id;
   private final String              filename;
   private final int                 block;
   private final int                 lineNumber;
   private final String              description;
-  private final ArrayList<TestInfo> testsInOrder = new ArrayList<TestInfo>();
+  private final ArrayList<TestInfo> testsInOrder = new ArrayList<>();
   private final boolean             isInFinallyBlock;
-  private final boolean             poison;
+  private final PoisonStatus        poison;
 
   public MutationDetails(final MutationIdentifier id, final String filename,
       final String description, final int lineNumber, final int block) {
-    this(id, filename, description, lineNumber, block, false, false);
+    this(id, filename, description, lineNumber, block, false, PoisonStatus.NORMAL);
   }
 
   public MutationDetails(final MutationIdentifier id, final String filename,
       final String description, final int lineNumber, final int block,
-      final boolean isInFinallyBlock, final boolean poison) {
+      final boolean isInFinallyBlock, final PoisonStatus poison) {
     this.id = id;
-    this.description = description;
-    this.filename = filename;
+    this.description = Preconditions.checkNotNull(description);
+    this.filename = defaultFilenameIfNotSupplued(filename);
     this.lineNumber = lineNumber;
     this.block = block;
     this.isInFinallyBlock = isInFinallyBlock;
@@ -56,17 +60,25 @@ public final class MutationDetails {
 
   @Override
   public String toString() {
-    return "MutationDetails [id=" + this.id + ", filename=" + this.filename
-        + ", block=" + this.block + ", lineNumber=" + this.lineNumber
-        + ", description=" + this.description + ", testsInOrder="
-        + this.testsInOrder + "]";
+    return "MutationDetails [id=" + this.id + ", filename=" + this.filename + ", block="
+        + this.block + ", lineNumber=" + this.lineNumber + ", description=" + this.description
+        + ", testsInOrder=" + this.testsInOrder + ", isInFinallyBlock="
+        + this.isInFinallyBlock + ", poison=" + this.poison + "]";
+  }
+
+  public MutationDetails withDescription(String desc) {
+    return new MutationDetails(this.id, this.filename, desc, this.lineNumber, this.block, this.isInFinallyBlock, this.poison);
+  }
+
+  public MutationDetails withPoisonStatus(PoisonStatus poisonStatus) {
+    return new MutationDetails(this.id, this.filename, this.description, this.lineNumber, this.block, this.isInFinallyBlock, poisonStatus);
   }
 
   /**
    * Returns the human readable description of the mutation. This may be a
    * constant string or may provide more contextual information depending on the
    * mutation operator.
-   * 
+   *
    * @return Human readable description of the mutation
    */
   public String getDescription() {
@@ -75,7 +87,7 @@ public final class MutationDetails {
 
   /**
    * Returns the mutation description with special characters escaped
-   * 
+   *
    * @return Escaped description string
    */
   @Deprecated
@@ -86,7 +98,7 @@ public final class MutationDetails {
 
   /**
    * Returns the method name in which this mutation is located as a string
-   * 
+   *
    * @return method name as string
    */
   @Deprecated
@@ -97,7 +109,7 @@ public final class MutationDetails {
 
   /**
    * Returns the class in which this mutation is located
-   * 
+   *
    * @return class in which mutation is located
    */
   public ClassName getClassName() {
@@ -106,7 +118,7 @@ public final class MutationDetails {
 
   /**
    * Returns the class in which this mutation is located
-   * 
+   *
    * @return class in which mutation is located
    */
   public MethodName getMethod() {
@@ -115,7 +127,7 @@ public final class MutationDetails {
 
   /**
    * Returns the file in which this mutation is located
-   * 
+   *
    * @return file in which mutation is located
    */
   public String getFilename() {
@@ -125,7 +137,7 @@ public final class MutationDetails {
   /**
    * Returns the line number on which the mutation occurs as reported within the
    * jvm bytecode
-   * 
+   *
    * @return The line number on which the mutation occurs.
    */
   public int getLineNumber() {
@@ -134,7 +146,7 @@ public final class MutationDetails {
 
   /**
    * Returns the ClassLine in which this mutation is located
-   * 
+   *
    * @return the ClassLine in which this mutation is located
    */
   public ClassLine getClassLine() {
@@ -143,7 +155,7 @@ public final class MutationDetails {
 
   /**
    * Returns the identified for this mutation
-   * 
+   *
    * @return a MutationIdentifier
    */
   public MutationIdentifier getId() {
@@ -152,7 +164,7 @@ public final class MutationDetails {
 
   /**
    * Returns the tests that cover this mutation in optimised order
-   * 
+   *
    * @return a list of TestInfo objects
    */
   public List<TestInfo> getTestsInOrder() {
@@ -161,7 +173,7 @@ public final class MutationDetails {
 
   /**
    * Adds tests to the list of covering tests
-   * 
+   *
    * @param testNames
    *          The tests to add
    */
@@ -173,27 +185,27 @@ public final class MutationDetails {
   /**
    * Indicates if this mutation might poison state within the jvm (e.g affect
    * the values of static variable)
-   * 
+   *
    * @return true if the mutation might poison the jvm otherwise false
    */
   public boolean mayPoisonJVM() {
-    return this.poison || isInStaticInitializer();
+    return this.poison.mayPoison();
   }
 
   /**
    * Indicates if this mutation is in a static initializer block
-   * 
+   *
    * @return true if in a static initializer otherwise false
    */
   public boolean isInStaticInitializer() {
-    return this.getMethod().name().trim().startsWith("<clinit>");
+    return this.poison == PoisonStatus.IS_STATIC_INITIALIZER_CODE;
   }
 
   /**
    * Returns the basic block in which this mutation occurs. See
    * https://github.com/hcoles/pitest/issues/131 for discussion on block
    * coverage
-   * 
+   *
    * @return the block within the method that this mutation is located in
    */
   public int getBlock() {
@@ -202,7 +214,7 @@ public final class MutationDetails {
 
   /**
    * Returns true if this mutation has a matching identifier
-   * 
+   *
    * @param id
    *          the MutationIdentifier to match
    * @return true if the MutationIdentifier matches otherwise false
@@ -213,7 +225,7 @@ public final class MutationDetails {
 
   /**
    * Returns the name of the mutator that created this mutation
-   * 
+   *
    * @return the mutator name
    */
   public String getMutator() {
@@ -231,12 +243,31 @@ public final class MutationDetails {
   }
 
   /**
+   * Zero based index to first affected ASM instruction
+   * @return
+   */
+  public int getInstructionIndex() {
+    return getFirstIndex() - 1;
+  }
+
+  /**
    * Indicates if the mutation is within a finally block
-   * 
+   *
    * @return true if in finally block otherwise false
    */
   public boolean isInFinallyBlock() {
     return this.isInFinallyBlock;
+  }
+  
+  private String defaultFilenameIfNotSupplued(String filename) {
+    // the BuildVerifier should throw an error if classes are compiled 
+    // without filename debug info, however classes may be generated
+    // by annotation processors. These can be dealt with based on their
+    // bytecode, but they must have a non null source file. 
+    if (filename == null) {
+      return "unknown_source";
+    }
+    return filename;
   }
 
   @Override
@@ -268,5 +299,6 @@ public final class MutationDetails {
     }
     return true;
   }
+
 
 }

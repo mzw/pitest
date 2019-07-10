@@ -8,9 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import org.apache.commons.io.FileUtils;
-import org.pitest.mutationtest.statistics.MutationStatistics;
-import org.pitest.mutationtest.statistics.Score;
-import org.pitest.mutationtest.tooling.AnalysisResult;
+
 import org.pitest.util.StringUtil;
 
 public class Log {
@@ -54,25 +52,5 @@ public class Log {
         }
     }
     
-    public static void logPitReport(AnalysisResult result) {
-        try {
-            MutationStatistics stats = result.getStatistics().value().getMutationStatistics();
-            PrintStream ps = new PrintStream(new File(Log.getLatestDir(), "pit.report.txt"));
 
-            ps.println(StringUtil.separatorLine('='));
-            ps.println("- Statistics");
-            ps.println(StringUtil.separatorLine('='));
-            stats.report(ps);
-            
-            ps.println(StringUtil.separatorLine('='));
-            ps.println("- Mutators");
-            ps.println(StringUtil.separatorLine('='));
-            for (Score score : stats.getScores()) {
-                score.report(ps);
-                ps.println(StringUtil.separatorLine());
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 }
